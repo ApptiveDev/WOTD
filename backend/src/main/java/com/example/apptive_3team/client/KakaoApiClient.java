@@ -1,4 +1,4 @@
-ackage com.example.apptive_3team.client;
+package com.example.apptive_3team.client;
 
 import com.example.apptive_3team.dto.KakaoUserResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
