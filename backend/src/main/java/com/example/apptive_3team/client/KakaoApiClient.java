@@ -1,6 +1,6 @@
-ackage com.example.apptive_3team.client;
+package com.example.apptive_3team.client;
 
-import com.example.apptive_3team.dto.KakaoUserResponse;
+import com.example.apptive_3team.dto.KakaoResponseDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
@@ -12,7 +12,7 @@ public class KakaoApiClient {
     private final WebClient webClient = WebClient.create();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public KakaoUserResponse getUserInfo(String accessToken) {
+    public KakaoResponseDTO getUserInfo(String accessToken) {
         try {
             return webClient.get()
                     .uri("https://kapi.kakao.com/v2/user/me")
@@ -28,7 +28,7 @@ public class KakaoApiClient {
                             }
 
                             try {
-                                KakaoUserResponse userResponse = objectMapper.readValue(body, KakaoUserResponse.class);
+                                KakaoResponseDTO userResponse = objectMapper.readValue(body, KakaoResponseDTO.class);
                                 return Mono.just(userResponse);
                             } catch (Exception e) {
                                 return Mono.error(new RuntimeException("Kakao 응답 파싱 실패", e));
