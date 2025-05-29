@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   wotd:
     image: wotd:0.2.0
