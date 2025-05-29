@@ -2,11 +2,14 @@ version: '3.8'
 
 services:
   wotd:
+    build: .
     image: wotd:0.2.0
     container_name: wotd
     ports:
       - "8080:8080"
     env_file:
       - .env
+    volumes:
+      - ./.env:/backend/.env
     restart: unless-stopped
 
