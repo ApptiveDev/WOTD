@@ -1,0 +1,9 @@
+services:
+  wotd:
+    image: wotd:0.2.0
+    container_name: wotd
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    restart: unless-stopped
