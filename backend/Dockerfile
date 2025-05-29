@@ -1,16 +1,26 @@
+# 1단계: 빌드 스테이지
 FROM gradle:8.7-jdk21-alpine AS build
-
 WORKDIR /app
 
-# 1) Gradle 빌드 파일만 먼저 복사
+# Gradle 캐시 최적화를 위해 먼저 build 파일 복사
 COPY build.gradle settings.gradle /app/
 COPY gradle /app/gradle
 
-# 2) 의존성 다운로드 / 캐시 가능
-RUN gradle clean build -x test --no-daemon --parallel || true
+# 의존성 다운로드 (소스 없이도 가능)
+RUN gradle build -x test --no-daemon || true
 
-# 3) 소스 전체 복사
-COPY src /app/src
+# 전체 복사
+COPY . /app
 
-# 4) 실제 빌드
-RUN gradle clean build -x test --no-daemon --parallel
+# 빌드 실행
+RUN gradle build -x test --no-daemon --parallel
+
+# 2단계: 런타임 스테이지 (더 작고 가벼움)
+FROM openjdk:21-slim
+WORKDIR /app
+
+# 빌드된 jar 복사
+COPY --from=build /app/build/libs/*.jar app.jar
+
+# 실행
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
