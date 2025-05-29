@@ -12,3 +12,4 @@ services:
     volumes:
       - ./.env:/backend/.env
     restart: unless-stopped
+
