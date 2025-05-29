@@ -3,7 +3,7 @@ FROM gradle:8.7-jdk21-alpine AS build
 WORKDIR /app
 
 # 1) Gradle 빌드 파일만 먼저 복사
-COPY build.gradle settings.gradle gradle.properties /app/
+COPY build.gradle settings.gradle /app/
 COPY gradle /app/gradle
 
 # 2) 의존성 다운로드 / 캐시 가능
