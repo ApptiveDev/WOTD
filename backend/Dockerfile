@@ -6,8 +6,8 @@ WORKDIR /app
 COPY build.gradle settings.gradle /app/
 COPY gradle /app/gradle
 
-# 의존성 다운로드 (소스 없이도 가능)
-RUN gradle build -x test --no-daemon || true
+# 의존성 다운로드
+RUN gradle build -x test
 
 # 전체 복사
 COPY . /app
@@ -20,7 +20,7 @@ FROM openjdk:21-slim
 WORKDIR /app
 
 # 빌드된 jar 복사
-COPY --from=build /app/build/libs/*.jar app.jar
+COPY --from=build /app/build/libs/apptive_3team-0.0.1-SNAPSHOT.jar app.jar
 
 # 실행
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
