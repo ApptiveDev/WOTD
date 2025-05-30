@@ -13,6 +13,10 @@ java {
 	}
 }
 
+tasks.named('bootJar') {
+	mainClass.set('com.example.apptive_3team.Apptive3teamApplication')
+}
+
 configurations {
 	compileOnly {
 		extendsFrom annotationProcessor
