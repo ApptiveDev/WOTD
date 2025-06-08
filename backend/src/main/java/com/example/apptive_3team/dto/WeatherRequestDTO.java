@@ -1,6 +1,9 @@
 package com.example.apptive_3team.dto;
 
-public record WeatherRequestDTO(double latitude,
+import java.time.LocalDate;
+
+public record WeatherRequestDTO(LocalDate date,
+                                double latitude,
                                 double longitude){
 }
 

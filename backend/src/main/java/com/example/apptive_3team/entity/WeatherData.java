@@ -24,16 +24,18 @@ public class WeatherData implements Comparable<WeatherData>{
     private double temp_max;
     private double temp_avg;
     private double rain_amount;
+    private String description;
 
     public WeatherData() {}
 
-    public WeatherData(LocalDate date, double temp_feels_like, double temp_min, double temp_max, double temp_avg, double rain_amount) {
+    public WeatherData(LocalDate date, double temp_feels_like, double temp_min, double temp_max, double temp_avg, double rain_amount, String description) {
         this.date = date;
         this.temp_feels_like = temp_feels_like;
         this.temp_min = temp_min;
         this.temp_max = temp_max;
         this.temp_avg = temp_avg;
         this.rain_amount = rain_amount;
+        this.description = description;
     }
 
     @Override

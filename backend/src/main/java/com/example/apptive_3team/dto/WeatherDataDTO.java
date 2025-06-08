@@ -7,5 +7,6 @@ public record WeatherDataDTO(LocalDate date,
                              double tempMin,
                              double tempMax,
                              double tempAvg,
-                             double rainAmount) {
+                             double rainAmount,
+                             String description) {
 }
