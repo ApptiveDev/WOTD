@@ -11,5 +11,6 @@ import org.springframework.stereotype.Component;
 @Setter
 public class WeatherApiConfig {
     private String key;
-    private String url;
+    private String forecastUrl;
+    private String pastUrl;
 }
