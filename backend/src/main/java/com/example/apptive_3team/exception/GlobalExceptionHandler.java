@@ -2,6 +2,7 @@ package com.example.apptive_3team.exception;
 
 import com.example.apptive_3team.exception.Item.ItemNotFoundException;
 import com.example.apptive_3team.exception.Item.UserAlreadyHas20ItemsException;
+import com.example.apptive_3team.exception.KakaoLogin.InvalidKakaoAccessTokenException;
 import com.example.apptive_3team.exception.WeatherData.GetWeatherApiException;
 import com.example.apptive_3team.exception.WeatherData.NotSupportedLocationException;
 import com.example.apptive_3team.exception.WeatherData.NotSupportedDateException;
@@ -63,6 +64,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(GetWeatherApiException.class)
     public ResponseEntity<ApiResponse<?>> handleGetWeatherApiException(GetWeatherApiException ex) {
+        return ResponseEntity
+                .status(ex.getStatusCode())
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(ApiResponse.error(ex.getMessage(), ex.getErrorCode().name()));
+    }
+
+    @ExceptionHandler(InvalidKakaoAccessTokenException.class)
+    public ResponseEntity<ApiResponse<?>> handleInvalidKakaoAccessTokenException(InvalidKakaoAccessTokenException ex) {
         return ResponseEntity
                 .status(ex.getStatusCode())
                 .contentType(MediaType.APPLICATION_JSON)
