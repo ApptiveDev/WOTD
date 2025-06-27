@@ -1,4 +1,4 @@
-FROM gradle:8.7-jdk21-alpine AS build
+FROM gradle:8.7-jdk21-alpine as build
 
 WORKDIR /app
 COPY . .
