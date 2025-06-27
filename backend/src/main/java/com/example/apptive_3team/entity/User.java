@@ -28,6 +28,10 @@ public class User {
     @Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime createdAt;
 
+    public boolean isAllow_notification() {
+        return allow_notification != null && allow_notification;
+    }
+
     // Enum 타입을 정의
     public enum ProviderType {
         GOOGLE,
