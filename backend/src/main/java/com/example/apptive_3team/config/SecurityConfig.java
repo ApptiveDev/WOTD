@@ -22,8 +22,9 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
 
-                        // ✅ 여기는 로그인 안 해도 되는 공개 경로 (모두 허용)
-                        .requestMatchers("/", "/auth/**", "/users/**", "/index.html").permitAll()
+                        // ✅ 여기는 로그인 안 해도 되는 공개 경로 (일단 모두 허용)
+                        .requestMatchers("/**").permitAll()
+                        //  "/auth/**", "/users/**", "/index.html"
 
                         // 🔒 나머지는 로그인(인증) 필요
                         .anyRequest().authenticated()
