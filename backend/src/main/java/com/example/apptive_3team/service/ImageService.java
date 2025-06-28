@@ -20,7 +20,11 @@ public class ImageService {
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
 
-
+    /**
+     * 이미지 업로드 함수
+     * @param image
+     * @return imageURL
+     */
     public String upload(MultipartFile image) {
         try {
             // 고유값 생성(중복 방지)
@@ -46,6 +50,22 @@ public class ImageService {
 
         } catch (IOException e) {
             throw new RuntimeException("S3 업로드 실패", e);
+        }
+    }
+
+    /**
+     * 이미지 삭제 함수
+     * @param imageUrl
+     */
+    public void delete(String imageUrl) {
+        try {
+            // imageName 추출 (버킷 URL 이후 부분)
+            String imageName = imageUrl.substring(imageUrl.lastIndexOf("/") + 1);
+
+            // S3에서 객체 삭제
+            amazonS3Client.deleteObject(bucket, imageName);
+        } catch (Exception e) {
+            throw new RuntimeException("S3 삭제 실패", e);
         }
     }
 
