@@ -14,3 +14,5 @@ build/
 
 # .pen
 wotd.pem
+
+/src/main/resources/application.yml
