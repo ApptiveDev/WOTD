@@ -26,12 +26,12 @@ public class ItemController {
     /**
      * 챙길 물품 ID를 기반으로 챙길 물품 1개를 조회하는 기능.
      *
-     * @param request
      * @return 챙길 물품 1개에 대한 정보
      */
-    @PostMapping("/request")
-    public ResponseEntity<?> getItem(@RequestBody ItemRequestDTO request) {
-        Optional<ItemRequestDTO> data = itemService.getItemById(request.id());
+    @GetMapping("/request/{itemId}")
+    public ResponseEntity<?> getItem(@PathVariable Long itemId) {
+
+        Optional<ItemRequestDTO> data = itemService.getItemById(itemId);
         return ResponseEntity.ok(ApiResponse.success("챙길 물품 조회를 완료했습니다.", data));
     }
 
