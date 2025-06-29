@@ -67,10 +67,10 @@ dependencies {
 
     /* Hilt */
     implementation("com.google.dagger:hilt-android:2.48")
+    implementation(libs.androidx.ui.test.android)
     ksp("com.google.dagger:hilt-compiler:2.48")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
-
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

@@ -9,6 +9,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
 import retrofit2.http.POST
+import javax.inject.Singleton
 
 interface ServerAuthAPI {
     @POST("auth/kakao/login")
@@ -26,15 +27,23 @@ interface ServerAuthAPI {
 object NetworkModule {
 
     @Provides
+    @Singleton
     fun provideRetrofit(): Retrofit {
         return Retrofit.Builder()
-            .baseUrl("http://43.203.255.97:8080/") // BaseUrl
+            .baseUrl("http://localhost:8080/") // 로컬 서버 주소
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
 
     @Provides
+    @Singleton
     fun provideServerAuthAPI(retrofit: Retrofit): ServerAuthAPI {
         return retrofit.create(ServerAuthAPI::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideWeatherApi(retrofit: Retrofit): WeatherApi {
+        return retrofit.create(WeatherApi::class.java)
     }
 }
