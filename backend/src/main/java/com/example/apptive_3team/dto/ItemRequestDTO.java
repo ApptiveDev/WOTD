@@ -11,11 +11,7 @@ import java.time.LocalDate;
  * @param name 물품 이름 (50자 제한)
  * @param deadline 물품이 필요한 날짜 (MM-DD)
  */
-public record ItemDTO(Long id,
-
-                      @NotBlank
-                      @Size(max = 50, message = "가능한 글자수 50자를 넘으셨습니다.")
-                      String name,
-
-                      LocalDate deadline) {
+public record ItemRequestDTO(Long id,
+                             @NotBlank @Size(max = 50, message = "가능한 글자수 50자를 넘으셨습니다.")String name,
+                             LocalDate deadline) {
 }

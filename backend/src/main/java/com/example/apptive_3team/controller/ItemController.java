@@ -1,16 +1,13 @@
 package com.example.apptive_3team.controller;
 
 import com.example.apptive_3team.ApiResponse;
-import com.example.apptive_3team.dto.ItemDTO;
 import com.example.apptive_3team.dto.ItemRequestDTO;
 import com.example.apptive_3team.service.ItemService;
 import com.example.apptive_3team.service.KakaoService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,15 +17,11 @@ import java.util.Optional;
  */
 @RestController
 @RequestMapping("/item")
+@RequiredArgsConstructor
 public class ItemController {
+
     private final ItemService itemService;
     private final KakaoService kakaoService;
-
-    public ItemController(ItemService itemService,
-                          KakaoService kakaoService) {
-        this.itemService = itemService;
-        this.kakaoService = kakaoService;
-    }
 
     /**
      * 챙길 물품 ID를 기반으로 챙길 물품 1개를 조회하는 기능.
@@ -38,20 +31,27 @@ public class ItemController {
      */
     @PostMapping("/request")
     public ResponseEntity<?> getItem(@RequestBody ItemRequestDTO request) {
-        Optional<ItemDTO> data = itemService.getItemById(request.itemDTO().id());
+        Optional<ItemRequestDTO> data = itemService.getItemById(request.id());
         return ResponseEntity.ok(ApiResponse.success("챙길 물품 조회를 완료했습니다.", data));
     }
 
     /**
-     * 사용자 ID를 기반으로 사용자가 등록한 모든 챙길 물품을 조회하는 기능.
+     * user_id를 기반으로 등록된 모든 items 출력하는 함수
      *
-     * @param request
-     * @return 챙길 물품에 대한 정보 리스트
+     * @param token
+     * 헤더의 토큰 추출하여 user_id 검증
+     *
+     * @return
+     *
+     * GET /items/requestAll
+     * Authorization: Bearer eyJ0eXAiOiJKV1QiLCJh...
      */
-    @PostMapping("/requestAll")
-    public ResponseEntity<?> getItems(@RequestBody ItemRequestDTO request) {
-        Long user_id = kakaoService.getUserIdFromAccessToken(request.accessToken());
-        Optional<List<ItemDTO>> data = itemService.getItemsByUserId(user_id);
+    @GetMapping("/requestAll")
+    public ResponseEntity<?> getItems(@RequestHeader("Authorization") String token) {
+
+        Long user_id = kakaoService.getUserIdFromAccessToken(token);
+
+        Optional<List<ItemRequestDTO>> data = itemService.getItemsByUserId(user_id);
 
         if (data.isPresent() && !data.get().isEmpty()) {
             return ResponseEntity.ok(ApiResponse.success("챙길 물품 조회를 완료했습니다.", data));
@@ -70,10 +70,12 @@ public class ItemController {
      * @return 저장 여부에 대한 통보
      */
     @PostMapping("/add")
-    public ResponseEntity<?> addItem(@Valid @RequestBody ItemRequestDTO request) {
-        Long user_id = kakaoService.getUserIdFromAccessToken(request.accessToken());
+    public ResponseEntity<?> addItem(@RequestHeader("Authorization") String token,
+                                     @Valid @RequestBody ItemRequestDTO request) {
 
-        itemService.saveItem(user_id, request.itemDTO());
+        Long user_id = kakaoService.getUserIdFromAccessToken(token);
+
+        itemService.saveItem(user_id, request);
         return ResponseEntity.ok(ApiResponse.success("챙길 물품 등록을 완료했습니다."));
     }
 
@@ -84,20 +86,27 @@ public class ItemController {
      * @return 수정 여부에 대한 통보
      */
     @PostMapping("/update")
-    public ResponseEntity<?> updateItem(@Valid @RequestBody ItemRequestDTO request) {
-        itemService.updateItem(request.itemDTO());
+    public ResponseEntity<?> updateItem(@RequestHeader("Authorization") String token,
+                                        @Valid @RequestBody ItemRequestDTO request) {
+
+        Long user_id = kakaoService.getUserIdFromAccessToken(token);
+        itemService.updateItem(user_id, request);
+
         return ResponseEntity.ok(ApiResponse.success("챙길 물품 수정을 완료했습니다."));
     }
 
     /**
      * DB에 저장된 챙길 물품의 정보를 삭제하는 기능.
      *
-     * @param request
      * @return 삭제 여부에 대한 통보
      */
-    @PostMapping("/delete")
-    public ResponseEntity<?> deleteItem(@RequestBody ItemRequestDTO request) {
-        itemService.deleteItem(request.itemDTO());
+    @DeleteMapping("/delete/{itemId}")
+    public ResponseEntity<?> deleteItem(@PathVariable Long itemId,
+                                        @RequestHeader("Authorization") String token) {
+
+        Long user_id = kakaoService.getUserIdFromAccessToken(token);
+        itemService.deleteItem(user_id, itemId); // ← itemId만 넘김
         return ResponseEntity.ok(ApiResponse.success("챙길 물품 삭제를 완료했습니다."));
     }
+
 }
