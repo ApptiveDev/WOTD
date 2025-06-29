@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -63,5 +64,17 @@ public class KakaoService {
                 user.getProviderType().name(),
                 token
         );
+    }
+  
+    /**
+     * AccessToken값으로 사용자 Id를 얻어오는 메서드
+     *
+     * @param accessToken
+     * @return 사용자 Id
+     */
+    public Long getUserIdFromAccessToken (String accessToken) {
+        KakaoResponseDTO kakaoResponseDTO = kakaoApiClient.getUserInfo(accessToken);
+        Optional<User> user = kakaoRepository.findByProviderId(kakaoResponseDTO.id().toString());
+        return user.map(User::getId).orElse(null);
     }
 }
