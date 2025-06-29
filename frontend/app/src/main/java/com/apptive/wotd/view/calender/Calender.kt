@@ -51,6 +51,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.apptive.wotd.R
 import com.apptive.wotd.composable.HeightSpacer
 import com.apptive.wotd.composable.calander.CalendarScreen
@@ -178,6 +179,7 @@ fun CalendarPage() {
     }
 
     Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .fillMaxSize()
             .pointerInput(Unit) {
@@ -264,6 +266,8 @@ fun CalendarPage() {
             events = eventDates,
             onDateSelected = { selectedDate = it }
         )
+
+        WeatherCard(viewModel = viewModel())
     }
 }
 
