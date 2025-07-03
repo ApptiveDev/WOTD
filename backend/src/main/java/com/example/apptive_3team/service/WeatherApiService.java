@@ -22,10 +22,7 @@ import java.net.URLEncoder;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class WeatherApiService {
@@ -274,13 +271,33 @@ public class WeatherApiService {
                     .map(Map.Entry::getKey)
                     .orElse("정보 없음");
 
+            WeatherData weatherData = new WeatherData(date, feels_like_avg, temp_min, temp_max, temp_avg, rain_avg, mostCommonDescription);
+            saveOrUpdateWeather(weatherData);
+
             return new WeatherDataDTO(date, feels_like_avg, temp_min, temp_max, temp_avg, rain_avg, mostCommonDescription);
         } catch (IOException e) {
             throw new RuntimeException("날씨 데이터를 가져오는 데 실패했습니다.", e);
         }
     }
 
+    /**
+     * 날씨정보의 DB저장 유무에 관계없이 date에 해당하는 날씨 Id를 조회하는 메서드.
+     *
+     * @param date 날짜
+     * @param lat 위도
+     * @param lon 경도
+     * @return
+     */
+    public Long getWeatherId(LocalDate date, Double lat, Double lon) {
+        Optional<WeatherData> weather = weatherRepository.findByDate(date)
+                .or(() -> {
+                    // DB에 없으면 외부 API로 날씨정보 저장 및 조회
+                    getWeatherData(date, lat, lon);
+                    return weatherRepository.findByDate(date);
+                });
 
+        return weather.get().getId();
+    }
 
 
     /**
