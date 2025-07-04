@@ -38,15 +38,16 @@ enum class BottomTab(
 @Composable
 fun BottomBar(
     selectedTab: BottomTab,
-    onTabSelected: (BottomTab) -> Unit
+    onTabSelected: (BottomTab) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .border(width = 1.dp, color = Color(0xFFEBEEF4))
             .background(color = Color(0xFFFFFFFF))
-            .navigationBarsPadding(),
+            .navigationBarsPadding()
     ) {
         BottomTab.values().forEach { tab ->
             BottomBarItem(

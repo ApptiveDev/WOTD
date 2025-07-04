@@ -30,7 +30,7 @@ object NetworkModule {
     @Singleton
     fun provideRetrofit(): Retrofit {
         return Retrofit.Builder()
-            .baseUrl("http://localhost:8080/") // 로컬 서버 주소
+            .baseUrl("http://43.203.255.97:8080") // 로컬 서버 주소
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }

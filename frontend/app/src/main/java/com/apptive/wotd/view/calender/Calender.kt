@@ -19,8 +19,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
@@ -64,6 +66,11 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.apptive.wotd.composable.BottomBar
+import com.apptive.wotd.composable.BottomTab
+import com.apptive.wotd.composable.CameraBtn
+import com.apptive.wotd.composable.MoodReportBtn
 
 @Composable
 fun MonthlyCalendar(
@@ -96,6 +103,7 @@ fun MonthlyCalendar(
             columns = GridCells.Fixed(7),
             modifier = Modifier
                 .fillMaxWidth()
+                .height(250.dp)
                 .padding(horizontal = 29.dp),
             userScrollEnabled = false
         ) {
@@ -143,7 +151,6 @@ fun MonthlyCalendar(
         }
     }
 }
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalendarPage() {
@@ -152,7 +159,6 @@ fun CalendarPage() {
 
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
     var selectedDate by remember { mutableStateOf<LocalDate?>(null) }
-
     var showBottomSheet by remember { mutableStateOf(false) }
 
     val eventDates = remember {
@@ -178,96 +184,111 @@ fun CalendarPage() {
         }
     }
 
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .fillMaxSize()
-            .pointerInput(Unit) {
-                var triggered = false
-                detectHorizontalDragGestures(
-                    onDragEnd = { triggered = false }
-                ) { _, dragAmount ->
-                    if (!triggered) {
-                        when {
-                            dragAmount > 30 -> {
-                                currentMonth = currentMonth.minusMonths(1)
-                                triggered = true
-                            }
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(bottom = 80.dp) // BottomBar 공간 확보
+                .pointerInput(Unit) {
+                    var triggered = false
+                    detectHorizontalDragGestures(
+                        onDragEnd = { triggered = false }
+                    ) { _, dragAmount ->
+                        if (!triggered) {
+                            when {
+                                dragAmount > 30 -> {
+                                    currentMonth = currentMonth.minusMonths(1)
+                                    triggered = true
+                                }
 
-                            dragAmount < -30 -> {
-                                currentMonth = currentMonth.plusMonths(1)
-                                triggered = true
+                                dragAmount < -30 -> {
+                                    currentMonth = currentMonth.plusMonths(1)
+                                    triggered = true
+                                }
                             }
                         }
                     }
                 }
-            }
-    ) {
-        HeightSpacer(60.dp)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
         ) {
-            Image(
-                imageVector = ImageVector.vectorResource(R.drawable.ic_calender_arrow_left),
-                contentDescription = "전월 이동",
-                Modifier.noRippleClickable { currentMonth = currentMonth.minusMonths(1) }
-            )
-            Text(
-                buildAnnotatedString {
-                    withStyle(
-                        style = SpanStyle(
-                            color = Color.Black,
-                            fontWeight = FontWeight(700),
-                            fontFamily = pretendard,
-                            fontSize = 20.sp
-                        )
-                    ) {
-                        append("${currentMonth.year}년 ")
-                    }
+            HeightSpacer(60.dp)
 
-                    withStyle(
-                        style = SpanStyle(
-                            color = Color(0xFF25D061),
-                            fontWeight = FontWeight(700),
-                            fontFamily = pretendard,
-                            fontSize = 20.sp
-                        )
-                    ) {
-                        append("${currentMonth.monthValue}")
-                    }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Image(
+                    imageVector = ImageVector.vectorResource(R.drawable.ic_calender_arrow_left),
+                    contentDescription = "전월 이동",
+                    Modifier.noRippleClickable { currentMonth = currentMonth.minusMonths(1) }
+                )
+                Text(
+                    buildAnnotatedString {
+                        withStyle(
+                            style = SpanStyle(
+                                color = Color.Black,
+                                fontWeight = FontWeight(700),
+                                fontFamily = pretendard,
+                                fontSize = 20.sp
+                            )
+                        ) { append("${currentMonth.year}년 ") }
 
-                    withStyle(
-                        style = SpanStyle(
-                            color = Color.Black,
-                            fontWeight = FontWeight(700),
-                            fontFamily = pretendard,
-                            fontSize = 20.sp
-                        )
-                    ) {
-                        append("월")
-                    }
-                },
-                modifier = Modifier.noRippleClickable { showBottomSheet = true }
+                        withStyle(
+                            style = SpanStyle(
+                                color = Color(0xFF25D061),
+                                fontWeight = FontWeight(700),
+                                fontFamily = pretendard,
+                                fontSize = 20.sp
+                            )
+                        ) { append("${currentMonth.monthValue}") }
+
+                        withStyle(
+                            style = SpanStyle(
+                                color = Color.Black,
+                                fontWeight = FontWeight(700),
+                                fontFamily = pretendard,
+                                fontSize = 20.sp
+                            )
+                        ) { append("월") }
+                    },
+                    modifier = Modifier.noRippleClickable { showBottomSheet = true }
+                )
+                Image(
+                    imageVector = ImageVector.vectorResource(R.drawable.ic_calender_arrow_right),
+                    contentDescription = "내월 이동",
+                    Modifier.noRippleClickable { currentMonth = currentMonth.plusMonths(1) }
+                )
+            }
+
+            HeightSpacer(24.dp)
+
+            MonthlyCalendar(
+                yearMonth = currentMonth,
+                selectedDate = selectedDate,
+                events = eventDates,
+                onDateSelected = { selectedDate = it }
             )
-            Image(
-                imageVector = ImageVector.vectorResource(R.drawable.ic_calender_arrow_right),
-                contentDescription = "내월 이동",
-                Modifier.noRippleClickable { currentMonth = currentMonth.plusMonths(1) }
-            )
+
+            WeatherCard(viewModel = hiltViewModel())
+            HeightSpacer(8.dp)
+            CameraBtn()
+            HeightSpacer(8.dp)
+            MoodReportBtn()
+            HeightSpacer(16.dp)
+            TodayMoodCard()
+            HeightSpacer(8.dp)
+            OutfitGrid()
         }
-        HeightSpacer(24.dp)
-        MonthlyCalendar(
-            yearMonth = currentMonth,
-            selectedDate = selectedDate,
-            events = eventDates,
-            onDateSelected = { selectedDate = it }
-        )
 
-        WeatherCard(viewModel = viewModel())
+        BottomBar(
+            selectedTab = BottomTab.Calendar,
+            onTabSelected = { /* TODO */ },
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }
 
