@@ -3,6 +3,7 @@ package com.example.apptive_3team.exception;
 import com.example.apptive_3team.exception.Item.ItemNotFoundException;
 import com.example.apptive_3team.exception.Item.UserAlreadyHas20ItemsException;
 import com.example.apptive_3team.exception.KakaoLogin.InvalidKakaoAccessTokenException;
+import com.example.apptive_3team.exception.MoodReport.MoodReportNotFoundException;
 import com.example.apptive_3team.exception.WeatherData.GetWeatherApiException;
 import com.example.apptive_3team.exception.WeatherData.NotSupportedLocationException;
 import com.example.apptive_3team.exception.WeatherData.NotSupportedDateException;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.nio.file.AccessDeniedException;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
@@ -78,6 +80,14 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(ex.getMessage(), ex.getErrorCode().name()));
     }
 
+    @ExceptionHandler(MoodReportNotFoundException.class)
+    public ResponseEntity<ApiResponse<?>> handleMoodReportNotFoundException(MoodReportNotFoundException ex) {
+        return ResponseEntity
+                .status(ex.getStatusCode())
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(ApiResponse.error(ex.getMessage(), ex.getErrorCode().name()));
+    }
+
 
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -118,6 +128,14 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.BAD_REQUEST)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(ApiResponse.error("요청 형식이 잘못되었습니다.", "INVALID_JSON_FORMAT"));
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiResponse<?>> handleExccessDeniedException(AccessDeniedException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(ApiResponse.error(ex.getMessage(), "ACCESS_DENIED"));
     }
 
     @ExceptionHandler(Exception.class)
