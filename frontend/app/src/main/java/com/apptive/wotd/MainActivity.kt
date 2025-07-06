@@ -27,7 +27,8 @@ class MainActivity : ComponentActivity() {
                 KakaoSdk.init(this, kakaoKey)
                 KakaoMapSdk.init(this, kakaoKey)
 //                NavGraph("LoginPage")
-                NavGraph("CalenderPage")
+                NavGraph("MoodReportPage")
+//                NavGraph("CalenderPage")
             }
         }
     }
