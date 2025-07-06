@@ -40,7 +40,7 @@ fun MoodReportBtn() {
         border = BorderStroke(1.dp, Color(0xFF2BBF5F)),
         contentPadding = PaddingValues(vertical = 8.dp),
         modifier = Modifier
-            .width(320.dp)
+            .width(360.dp)
             .height(40.dp)
     ) {
         Row(

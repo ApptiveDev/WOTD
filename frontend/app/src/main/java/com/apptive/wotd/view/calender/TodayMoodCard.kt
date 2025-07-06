@@ -37,7 +37,7 @@ fun TodayMoodCard() {
         verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
         horizontalAlignment = Alignment.Start,
         modifier = Modifier
-            .width(320.dp)
+            .width(360.dp)
             .height(106.dp)
             .background(color = Color(0xFFF4F5F6), shape = RoundedCornerShape(size = 12.dp))
             .padding(start = 20.dp, top = 20.dp, end = 12.dp, bottom = 20.dp)

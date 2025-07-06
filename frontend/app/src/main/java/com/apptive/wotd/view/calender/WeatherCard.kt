@@ -61,7 +61,7 @@ fun WeatherCard(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
-            .width(320.dp)
+            .width(360.dp)
             .height(184.dp)
     ) {
         Row(
@@ -87,7 +87,7 @@ fun WeatherCard(
             verticalArrangement = Arrangement.spacedBy(12.dp),
             horizontalAlignment = Alignment.Start,
             modifier = Modifier
-                .width(320.dp)
+                .width(360.dp)
                 .background(color = Color(0xFFF4F5F6), shape = RoundedCornerShape(12.dp))
                 .padding(20.dp)
         ) {

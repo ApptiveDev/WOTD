@@ -71,6 +71,7 @@ import com.apptive.wotd.composable.BottomBar
 import com.apptive.wotd.composable.BottomTab
 import com.apptive.wotd.composable.CameraBtn
 import com.apptive.wotd.composable.MoodReportBtn
+import com.apptive.wotd.composable.OutfitGrid
 
 @Composable
 fun MonthlyCalendar(
@@ -190,7 +191,7 @@ fun CalendarPage() {
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(bottom = 80.dp) // BottomBar 공간 확보
+                .padding(bottom = 80.dp)
                 .pointerInput(Unit) {
                     var triggered = false
                     detectHorizontalDragGestures(

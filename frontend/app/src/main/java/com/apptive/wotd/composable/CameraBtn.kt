@@ -48,7 +48,7 @@ fun CameraBtn() {
         ),
         contentPadding = PaddingValues(vertical = 8.dp),
         modifier = Modifier
-            .width(320.dp)
+            .width(360.dp)
             .height(40.dp)
     ) {
         Row(
