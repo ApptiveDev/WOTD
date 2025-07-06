@@ -6,6 +6,7 @@ import java.time.LocalDate;
 
 public record MoodReportRequestDTO(Long id,
                                    Long weatherId,
+                                   LocalDate date,
                                    LocalDate created_at,
                                    Double latitude,
                                    Double longitude,
@@ -14,6 +15,5 @@ public record MoodReportRequestDTO(Long id,
                                    String img_etc,
                                    String content,
                                    Double score_feel,
-                                   TinyIntJdbcType score_icon,
-                                   LocalDate date) {
+                                   TinyIntJdbcType score_icon) {
 }

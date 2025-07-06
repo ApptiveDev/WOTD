@@ -21,6 +21,7 @@ public class MoodReport {
     @Column(name = "weather_id") // DB 컬럼명은 weather_id로 매핑
     private Long weatherId;
 
+    private LocalDate date;
     private LocalDate created_at;
     private Double latitude;
     private Double longitude;
