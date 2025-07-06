@@ -309,6 +309,27 @@ public class WeatherApiService {
     }
 
     /**
+     * ID값으로 날씨데이터를 DB에서 조회하는 메서드
+     *
+     * @param id 날씨데이터 ID
+     */
+    public WeatherDataDTO getWeatherDataById(Long id) {
+        return weatherRepository.findById(id)
+                .map(weatherData -> new WeatherDataDTO(
+                        weatherData.getDate(),
+                        weatherData.getTemp_feels_like(),
+                        weatherData.getTemp_min(),
+                        weatherData.getTemp_max(),
+                        weatherData.getTemp_avg(),
+                        weatherData.getRain_amount(),
+                        weatherData.getDescription(),
+                        weatherData.getLatitude(),
+                        weatherData.getLongitude()
+                ))
+                .orElseThrow(() -> new GetWeatherApiException());
+    }
+
+    /**
      * openWeatherApi 호출이 정상적으로 작동됐는지 확인하는 메서드.
      *
      * @param responseCode
