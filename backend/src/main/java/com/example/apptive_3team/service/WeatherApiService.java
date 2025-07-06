@@ -9,6 +9,7 @@ import com.example.apptive_3team.repository.WeatherRepository;
 import com.example.apptive_3team.util.DateUtils;
 import com.example.apptive_3team.util.NumberUtils;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
@@ -25,22 +26,12 @@ import java.time.ZoneOffset;
 import java.util.*;
 
 @Service
+@RequiredArgsConstructor
 public class WeatherApiService {
     private final WeatherRepository weatherRepository;
     private final WeatherApiConfig weatherApiConfig;
     private final DateUtils dateUtils;
     private final NumberUtils numberUtils;
-
-    public WeatherApiService(WeatherRepository weatherRepository,
-                             WeatherApiConfig weatherApiConfig,
-                             DateUtils dateUtils,
-                             NumberUtils numberUtils) {
-
-        this.weatherRepository = weatherRepository;
-        this.weatherApiConfig = weatherApiConfig;
-        this.dateUtils = dateUtils;
-        this.numberUtils = numberUtils;
-    }
 
     /**
      * date가 과거인지 미래인지에 따라 과거/예보 날씨 정보를 적절하게 수행하는 메서드.
@@ -48,16 +39,17 @@ public class WeatherApiService {
      * @param date 날짜
      * @param latitude 위도
      * @param longitude 경도
-     * @return WeatherDataDTO
      */
-    public WeatherDataDTO getWeatherData(LocalDate date, double latitude, double longitude) {
+    public WeatherDataDTO getWeatherData(LocalDate date, Double latitude, Double longitude) {
         LocalDate today = LocalDate.now();
+        Double lat = numberUtils.round(latitude);
+        Double lon = numberUtils.round(longitude);
 
         try {
             if (date.isBefore(today)) {
-                return getPastWeatherData(date, latitude, longitude);
+                return getPastWeatherData(date, lat, lon);
             } else {
-                return getForecastWeatherData(date, latitude, longitude);
+                return getForecastWeatherData(date, lat, lon);
             }
         } catch (GetWeatherApiException e) {
             throw e;
@@ -70,12 +62,12 @@ public class WeatherApiService {
      * @param date 날짜
      * @param latitude 위도
      * @param longitude 경도
-     * @return WeatherDateDTO
-     * @throws IOException
      */
-    public WeatherDataDTO getForecastWeatherData(LocalDate date, double latitude, double longitude) {
+    public WeatherDataDTO getForecastWeatherData(LocalDate date, Double latitude, Double longitude) {
 
         try {
+            validateDateIsUnder30(date);
+
             StringBuilder urlBuilder = new StringBuilder(weatherApiConfig.getForecastUrl());
             urlBuilder.append("?&lat=").append(latitude);
             urlBuilder.append("&lon=").append(longitude);
@@ -121,24 +113,24 @@ public class WeatherApiService {
                 JSONObject feelsLike = dayForecast.getJSONObject("feels_like");
                 JSONArray weatherArray = dayForecast.getJSONArray("weather");
 
-                double tempMin = temp.getDouble("min");
-                double tempMax = temp.getDouble("max");
+                Double tempMin = temp.getDouble("min");
+                Double tempMax = temp.getDouble("max");
 
-                double tempAvg = numberUtils.average(
+                Double tempAvg = numberUtils.average(
                         temp.getDouble("day"),
                         temp.getDouble("night"),
                         temp.getDouble("eve"),
                         temp.getDouble("morn")
                 );
 
-                double feelsLikeAvg = numberUtils.average(
+                Double feelsLikeAvg = numberUtils.average(
                         feelsLike.getDouble("day"),
                         feelsLike.getDouble("night"),
                         feelsLike.getDouble("eve"),
                         feelsLike.getDouble("morn")
                 );
 
-                double rainAmount = 0.0;
+                Double rainAmount = 0.0;
                 if (dayForecast.has("rain")) {
                     rainAmount = dayForecast.getDouble("rain");
                 }
@@ -157,10 +149,10 @@ public class WeatherApiService {
                 feelsLikeAvg = numberUtils.round(feelsLikeAvg);
                 rainAmount = numberUtils.round(rainAmount);
 
-                WeatherData weatherData = new WeatherData(forecastDate, feelsLikeAvg, tempMin, tempMax, tempAvg, rainAmount, description);
+                WeatherData weatherData = new WeatherData(forecastDate, feelsLikeAvg, tempMin, tempMax, tempAvg, rainAmount, description, latitude, longitude);
                 saveOrUpdateWeather(weatherData);
 
-                return new WeatherDataDTO(forecastDate, feelsLikeAvg, tempMin, tempMax, tempAvg, rainAmount, description);
+                return new WeatherDataDTO(forecastDate, feelsLikeAvg, tempMin, tempMax, tempAvg, rainAmount, description, latitude, longitude);
             }
 
             // 루프를 끝까지 돌았지만 원하는 날짜를 찾지 못한 경우
@@ -177,10 +169,8 @@ public class WeatherApiService {
      * @param date 날짜
      * @param latitude 위도
      * @param longitude 경도
-     * @return WeatherDataDTO
-     * @throws IOException
      */
-    public WeatherDataDTO getPastWeatherData(LocalDate date, double latitude, double longitude) {
+    public WeatherDataDTO getPastWeatherData(LocalDate date, Double latitude, Double longitude) {
 
         try {
             long unixTime = dateUtils.convertDateToUnix(date) - 43200;
@@ -215,8 +205,8 @@ public class WeatherApiService {
             JSONObject json = new JSONObject(sb.toString());
             JSONArray list = json.getJSONArray("list");
 
-            double temp_min = Double.MAX_VALUE;
-            double temp_max = Double.MIN_VALUE;
+            Double temp_min = Double.MAX_VALUE;
+            Double temp_max = Double.MIN_VALUE;
             List<Double> tempList = new ArrayList<>();
             List<Double> feelsLikeList = new ArrayList<>();
             List<Double> rainList = new ArrayList<>();
@@ -226,10 +216,10 @@ public class WeatherApiService {
                 JSONObject item = list.getJSONObject(i);
                 JSONObject main = item.getJSONObject("main");
 
-                double temp = main.getDouble("temp");
-                double feels_like = main.getDouble("feels_like");
-                double tMin = main.getDouble("temp_min");
-                double tMax = main.getDouble("temp_max");
+                Double temp = main.getDouble("temp");
+                Double feels_like = main.getDouble("feels_like");
+                Double tMin = main.getDouble("temp_min");
+                Double tMax = main.getDouble("temp_max");
 
                 temp_min = Math.min(temp_min, tMin);
                 temp_max = Math.max(temp_max, tMax);
@@ -252,9 +242,9 @@ public class WeatherApiService {
                 }
             }
 
-            double temp_avg = numberUtils.average(tempList.stream().mapToDouble(Double::doubleValue).toArray());
-            double feels_like_avg = numberUtils.average(feelsLikeList.stream().mapToDouble(Double::doubleValue).toArray());
-            double rain_avg = rainList.isEmpty() ? 0.0 :
+            Double temp_avg = numberUtils.average(tempList.stream().mapToDouble(Double::doubleValue).toArray());
+            Double feels_like_avg = numberUtils.average(feelsLikeList.stream().mapToDouble(Double::doubleValue).toArray());
+            Double rain_avg = rainList.isEmpty() ? 0.0 :
                     numberUtils.average(rainList.stream().mapToDouble(Double::doubleValue).toArray());
 
             // 반올림
@@ -271,10 +261,10 @@ public class WeatherApiService {
                     .map(Map.Entry::getKey)
                     .orElse("정보 없음");
 
-            WeatherData weatherData = new WeatherData(date, feels_like_avg, temp_min, temp_max, temp_avg, rain_avg, mostCommonDescription);
+            WeatherData weatherData = new WeatherData(date, feels_like_avg, temp_min, temp_max, temp_avg, rain_avg, mostCommonDescription, latitude, longitude);
             saveOrUpdateWeather(weatherData);
 
-            return new WeatherDataDTO(date, feels_like_avg, temp_min, temp_max, temp_avg, rain_avg, mostCommonDescription);
+            return new WeatherDataDTO(date, feels_like_avg, temp_min, temp_max, temp_avg, rain_avg, mostCommonDescription, latitude, longitude);
         } catch (IOException e) {
             throw new RuntimeException("날씨 데이터를 가져오는 데 실패했습니다.", e);
         }
@@ -284,16 +274,19 @@ public class WeatherApiService {
      * 날씨정보의 DB저장 유무에 관계없이 date에 해당하는 날씨 Id를 조회하는 메서드.
      *
      * @param date 날짜
-     * @param lat 위도
-     * @param lon 경도
+     * @param latitude 위도
+     * @param longitude 경도
      * @return
      */
-    public Long getWeatherId(LocalDate date, Double lat, Double lon) {
-        Optional<WeatherData> weather = weatherRepository.findByDate(date)
+    public Long getWeatherId(LocalDate date, Double latitude, Double longitude) {
+        Double lat = numberUtils.round(latitude);
+        Double lon = numberUtils.round(longitude);
+
+        Optional<WeatherData> weather = weatherRepository.findByDateAndLocation(date, lat, lon)
                 .or(() -> {
                     // DB에 없으면 외부 API로 날씨정보 저장 및 조회
                     getWeatherData(date, lat, lon);
-                    return weatherRepository.findByDate(date);
+                    return weatherRepository.findByDateAndLocation(date, lat, lon);
                 });
 
         return weather.get().getId();
@@ -307,7 +300,7 @@ public class WeatherApiService {
      */
     @Transactional
     public void saveOrUpdateWeather(WeatherData newWeatherData) {
-        weatherRepository.findByDate(newWeatherData.getDate())
+        weatherRepository.findByDateAndLocation(newWeatherData.getDate(), newWeatherData.getLatitude(), newWeatherData.getLongitude())
                 .ifPresent(existingWeather -> {
                     newWeatherData.setId(existingWeather.getId()); // ID 같게 설정해서 덮어쓰기
                 });
