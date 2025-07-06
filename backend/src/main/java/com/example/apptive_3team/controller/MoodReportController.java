@@ -1,8 +1,9 @@
 package com.example.apptive_3team.controller;
 
 import com.example.apptive_3team.ApiResponse;
-import com.example.apptive_3team.dto.ItemRequestDTO;
 import com.example.apptive_3team.dto.MoodReportRequestDTO;
+import com.example.apptive_3team.dto.MoodReportResponseDTO;
+import com.example.apptive_3team.dto.WeatherDataDTO;
 import com.example.apptive_3team.entity.MoodReport;
 import com.example.apptive_3team.service.KakaoService;
 import com.example.apptive_3team.service.MoodReportService;
@@ -13,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/moodReport")
@@ -20,8 +22,8 @@ import java.util.List;
 public class MoodReportController {
 
     private final MoodReportService moodReportService;
-    private final WeatherApiService weatherApiService;
     private final KakaoService kakaoService;
+    private final WeatherApiService weatherApiService;
 
     /**
      * ID를 기반으로 무드 리포트 1개를 조회하는 기능.
@@ -30,7 +32,11 @@ public class MoodReportController {
     @GetMapping("/request/{moodReportId}")
     public ResponseEntity<?> getMoodReport(@PathVariable Long moodReportId) {
 
-        MoodReport data = moodReportService.getMoodReport(moodReportId);
+        MoodReport moodReport = moodReportService.getMoodReport(moodReportId);
+        WeatherDataDTO weatherData = weatherApiService.getWeatherDataById(moodReport.getWeatherId());
+
+        MoodReportResponseDTO data = new MoodReportResponseDTO(weatherData, moodReport);
+
         return ResponseEntity.ok(ApiResponse.success("무드 리포트 조회를 완료했습니다.", data));
     }
 
@@ -50,7 +56,14 @@ public class MoodReportController {
 
         Long user_id = kakaoService.getUserIdFromAccessToken(token);
 
-        List<MoodReport> data = moodReportService.getMoodReportsByUserId(user_id);
+        List<MoodReport> moodReports = moodReportService.getMoodReportsByUserId(user_id);
+
+        List<MoodReportResponseDTO> data = moodReports.stream()
+                .map(moodReport -> {
+                    WeatherDataDTO weatherData = weatherApiService.getWeatherDataById(moodReport.getWeatherId());
+                    return new MoodReportResponseDTO(weatherData, moodReport);
+                })
+                .collect(Collectors.toList());
 
         return ResponseEntity.ok(ApiResponse.success("무드 리포트 조회를 완료했습니다.", data));
     }

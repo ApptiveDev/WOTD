@@ -4,7 +4,6 @@ import com.example.apptive_3team.dto.MoodReportRequestDTO;
 import com.example.apptive_3team.entity.MoodReport;
 import com.example.apptive_3team.exception.MoodReport.MoodReportNotFoundException;
 import com.example.apptive_3team.repository.MoodReportRepository;
-import com.example.apptive_3team.repository.WeatherRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -19,7 +18,6 @@ import java.util.Optional;
 public class MoodReportService {
 
     private final MoodReportRepository moodReportRepository;
-    private final WeatherRepository weatherRepository;
     private final WeatherApiService weatherApiService;
 
     /**
@@ -40,6 +38,7 @@ public class MoodReportService {
 
         moodReport.setWeatherId(weatherId);
         moodReport.setUserId(userId);
+        moodReport.setDate(date);
         moodReport.setCreated_at(moodReportRequestDTO.created_at());
         moodReport.setLatitude(lat);
         moodReport.setLongitude(lon);
@@ -98,6 +97,7 @@ public class MoodReportService {
             double lat = moodReportRequestDTO.latitude();
             double lon = moodReportRequestDTO.longitude();
 
+            moodReport.setDate(date);
             moodReport.setWeatherId(weatherApiService.getWeatherId(date, lat, lon));
         }
 
@@ -116,7 +116,7 @@ public class MoodReportService {
      * 저장된 무드리포트를 삭제하는 메서드.
      * 
      * @param userId 사용자 ID
-     * @param moodReportRequestDTO 삭제할 무드리포트 정보를 가진 DTO
+     * @param moodReportId 삭제할 무드리포트 ID
      */
     @Transactional
     public void deleteMoodReport(Long userId, Long moodReportId) {
