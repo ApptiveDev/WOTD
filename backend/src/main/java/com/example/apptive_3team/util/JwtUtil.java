@@ -1,18 +1,24 @@
 package com.example.apptive_3team.util;
 
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
+import java.util.Base64;
 import java.util.Date;
 
 @Component
 public class JwtUtil {
 
-    private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    private final Key key;
     private final long expireTimeMs = 1000L * 60 * 60 * 24 * 365 * 50; // 50년
+
+    // 생성자에서 Base64 디코딩하여 Key 생성
+    public JwtUtil(@Value("${jwt.secret}") String secret) {
+        this.key = Keys.hmacShaKeyFor(Base64.getDecoder().decode(secret));
+    }
 
     // 토큰 생성
     public String createToken(String providerId) {
