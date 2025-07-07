@@ -35,12 +35,12 @@ class WeatherViewModel @Inject constructor(
                 val response = weatherApi.getWeather(request)
                 Log.d(TAG, "API 응답: $response")
                 
-                if (response.isSuccess && response.data.isNotEmpty()) {
-                    val weatherData = response.data[0]
+                if (response.isSuccess) {
+                    val weatherData = response.data
                     Log.d(TAG, "날씨 데이터 성공적으로 받아옴: $weatherData")
                     _weather.value = weatherData
                 } else {
-                    Log.e(TAG, "API 응답 실패 - isSuccess: ${response.isSuccess}, data size: ${response.data.size}")
+                    Log.e(TAG, "API 응답 실패 - isSuccess: ${response.isSuccess}")
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "날씨 API 호출 중 오류 발생", e)
