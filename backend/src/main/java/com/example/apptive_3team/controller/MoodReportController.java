@@ -48,13 +48,13 @@ public class MoodReportController {
      *
      * @return
      *
-     * GET /items/requestAll
+     * GET /moodReport/requestAll
      * Authorization: Bearer eyJ0eXAiOiJKV1QiLCJh...
      */
     @GetMapping("/requestAll")
     public ResponseEntity<?> getMoodReports(@RequestHeader("Authorization") String token) {
 
-        Long user_id = kakaoService.getUserIdFromAccessToken(token);
+        Long user_id = kakaoService.getUserIdFromJwtToken(token);
 
         List<MoodReport> moodReports = moodReportService.getMoodReportsByUserId(user_id);
 
@@ -78,7 +78,7 @@ public class MoodReportController {
     public ResponseEntity<?> addMoodReport(@RequestHeader("Authorization") String token,
                                      @Valid @RequestBody MoodReportRequestDTO request) {
 
-        Long user_id = kakaoService.getUserIdFromAccessToken(token);
+        Long user_id = kakaoService.getUserIdFromJwtToken(token);
 
         moodReportService.saveMoodReport(user_id, request);
         return ResponseEntity.ok(ApiResponse.success("무드 리포트 등록을 완료했습니다."));
@@ -94,7 +94,7 @@ public class MoodReportController {
     public ResponseEntity<?> updateMoodReport(@RequestHeader("Authorization") String token,
                                         @Valid @RequestBody MoodReportRequestDTO request) {
 
-        Long user_id = kakaoService.getUserIdFromAccessToken(token);
+        Long user_id = kakaoService.getUserIdFromJwtToken(token);
         
         moodReportService.updateMoodReport(user_id, request);
 
@@ -110,7 +110,7 @@ public class MoodReportController {
     public ResponseEntity<?> deleteMoodReport(@PathVariable Long moodReportId,
                                         @RequestHeader("Authorization") String token) {
 
-        Long user_id = kakaoService.getUserIdFromAccessToken(token);
+        Long user_id = kakaoService.getUserIdFromJwtToken(token);
         
         moodReportService.deleteMoodReport(user_id, moodReportId);
         return ResponseEntity.ok(ApiResponse.success("무드 리포트 삭제를 완료했습니다."));
