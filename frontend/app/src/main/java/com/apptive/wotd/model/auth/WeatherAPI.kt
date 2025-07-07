@@ -22,10 +22,10 @@ data class WeatherData(
 data class WeatherResponse(
     val isSuccess: Boolean,
     val message: String,
-    val data: List<WeatherData>
+    val data: WeatherData
 )
 
 interface WeatherApi {
-    @POST("/weather/request")
+    @POST("weather/request")
     suspend fun getWeather(@Body request: WeatherRequest): WeatherResponse
 }

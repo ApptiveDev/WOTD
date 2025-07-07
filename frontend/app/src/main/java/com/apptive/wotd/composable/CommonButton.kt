@@ -1,15 +1,22 @@
 package com.apptive.wotd.composable
 
+import android.app.Activity
+import android.content.Intent
+import android.provider.MediaStore
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -19,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
@@ -26,6 +34,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.apptive.wotd.R
 import com.apptive.wotd.ui.theme.pretendard
 
 /**
@@ -102,5 +111,45 @@ fun ButtonWithLogo(
         )
         Spacer(modifier = Modifier.weight(1f))
         Box(modifier = Modifier.size(20.dp))
+    }
+}
+
+@Composable
+fun CameraBtn(
+    onClick: () -> Unit
+) {
+    val context = LocalContext.current
+    Button(
+        onClick = {
+            onClick()
+        },
+        shape = RoundedCornerShape(4.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color(0xFF2BBF5F),
+            contentColor = Color.White
+        ),
+        contentPadding = PaddingValues(vertical = 8.dp),
+        modifier = Modifier
+            .width(320.dp)
+            .height(40.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally)
+        ) {
+            Image(
+                imageVector = ImageVector.vectorResource(R.drawable.btn_camera),
+                contentDescription = "카메라 버튼"
+            )
+            Text(
+                text = "오늘의 코디 촬영하기",
+                style = TextStyle(
+                    fontSize = 12.sp,
+                    fontFamily = pretendard,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            )
+        }
     }
 }

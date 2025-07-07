@@ -37,6 +37,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Popup
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.apptive.wotd.R
@@ -45,7 +46,9 @@ import com.apptive.wotd.composable.NextButton
 import com.apptive.wotd.composable.WidthSpacer
 import com.apptive.wotd.composable.noRippleClickable
 import com.apptive.wotd.model.auth.SignUpViewModel
+import com.apptive.wotd.model.auth.TokenManager
 import com.apptive.wotd.ui.theme.pretendard
+import com.apptive.wotd.ui.theme.primaryColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -196,22 +199,18 @@ fun TermBottomSheet(
                     .padding(vertical = 16.dp)
                     .height(58.dp),
                 text = "확인",
-                buttonColor = if (isEssentialChecked) Color(0xFF348ADF) else Color(0xFFCADCF5),
+                buttonColor = if (isEssentialChecked) primaryColor else Color(0xFFCADCF5),
                 onClick = {
                     if(isEssentialChecked){
                         vm.updateTermsOfServices(true)
                         vm.logSignUpData()
                         onDismiss()
                         vm.completeSignUp(
-                            onSuccess = { accessToken, refreshToken ->
-                                val sharedPreferences =
-                                    context.getSharedPreferences("user", Context.MODE_PRIVATE)
-                                with(sharedPreferences.edit()) {
-                                    putString("accessToken", accessToken)
-                                    putString("refreshToken", refreshToken)
-                                    apply()
+                            onSuccess = { token, name ->
+                                TokenManager.saveData(context, token, name)
+                                navController.navigate("CalendarPage") {
+                                    popUpTo(0)
                                 }
-                                navController.navigate("CalenderPage")
                             },
                             onFailure = { error ->
                                 Toast.makeText(

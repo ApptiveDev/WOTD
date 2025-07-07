@@ -1,15 +1,28 @@
 package com.apptive.wotd.view.calender
 
 import android.util.Log
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
@@ -19,23 +32,28 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.text.isDigitsOnly
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.apptive.wotd.R
 import com.apptive.wotd.ui.theme.pretendard
 import java.time.LocalDate
 import com.apptive.wotd.model.auth.WeatherViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.apptive.wotd.composable.HeightSpacer
 import com.apptive.wotd.composable.WidthSpacer
+import com.apptive.wotd.ui.theme.primaryColor
 
 @Composable
 fun WeatherCard(
     viewModel: WeatherViewModel = hiltViewModel()
 ) {
     val weather by viewModel.weather.collectAsState()
-    val TAG = "WeatherCard"
+    val temperature = weather?.tempAvg?.toInt() ?: 0
+    val feelsLike = weather?.tempFeelsLike?.toInt() ?: 0
+    val rainAmount = weather?.rainAmount?.toInt() ?: 0
+    val description = weather?.description ?: "맑음"
 
     LaunchedEffect(Unit) {
-        Log.d(TAG, "WeatherCard LaunchedEffect 실행 - API 호출 시작")
         viewModel.fetchWeather(
             lat = 35.228700446027,
             lon = 129.07900236976,
@@ -43,61 +61,59 @@ fun WeatherCard(
         )
     }
 
-    // 날씨 데이터 상태 변화 감지
-    LaunchedEffect(weather) {
-        weather?.let {
-            Log.d(TAG, "날씨 데이터 업데이트됨: $it")
-        } ?: Log.d(TAG, "날씨 데이터가 null입니다")
-    }
-
-    val temperature = weather?.tempAvg?.toInt() ?: 0
-    val feelsLike = weather?.tempFeelsLike?.toInt() ?: 0
-    val rainAmount = weather?.rainAmount?.toInt() ?: 0
-    val description = weather?.description ?: "맑음"
-
-    Log.d(TAG, "UI 렌더링 - 기온: ${temperature}°C, 체감온도: ${feelsLike}°C, 강수량: ${rainAmount}mm, 날씨: $description")
-
     Column(
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
-            .width(292.dp)
-            .height(184.dp)
+            .fillMaxWidth()
+            .background(color = Color(0xFFF4F5F6), shape = RoundedCornerShape(size = 12.dp))
+            .padding(start = 20.dp, top = 16.dp, end = 20.dp, bottom = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Image(
-                imageVector = ImageVector.vectorResource(R.drawable.ic_location_pin),
-                contentDescription = "위치 핀"
-            )
-            Text(
-                text = "금정구 장전동",
-                style = TextStyle(
-                    fontSize = 10.sp,
-                    fontFamily = pretendard,
-                    fontWeight = FontWeight(600),
-                    color = Color(0xFFA9ACB1),
+        when (weather) {
+            null -> {
+                val transition = rememberInfiniteTransition()
+                val translateAnimation by transition.animateFloat(
+                    initialValue = 360f,
+                    targetValue = 0f,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(
+                            durationMillis = 1200,
+                            easing = FastOutSlowInEasing
+                        ),
+                        repeatMode = RepeatMode.Restart
+                    )
                 )
-            )
-        }
+                Canvas(modifier = Modifier.size(size = 60.dp)) {
+                    val startAngle = 5f
+                    val sweepAngle = 350f
 
-        Column(
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            horizontalAlignment = Alignment.Start,
-            modifier = Modifier
-                .width(292.dp)
-                .background(color = Color(0xFFF4F5F6), shape = RoundedCornerShape(12.dp))
-                .padding(20.dp)
-        ) {
-            WeatherRow("기온", "$temperature", Color(0xFF25D061), "°C")
+                    rotate(translateAnimation) {
+                        drawArc(
+                            brush = Brush.sweepGradient(
+                                colors = listOf(
+                                    primaryColor,
+                                    primaryColor.copy(0f)
+                                ),
+                                center = Offset(size.width / 2f, size.height / 2f)
+                            ),
+                            startAngle = startAngle,
+                            sweepAngle = sweepAngle,
+                            useCenter = false,
+                            topLeft = Offset(6 / 2f, 6 / 2f),
+                            style = Stroke(width = 6.dp.toPx(), cap = StrokeCap.Round),
+                        )
+                    }
+                }
+            }
 
-            WeatherRow("날씨", description, Color(0xFF25D061), "")
-
-            WeatherRow("체감온도", "$feelsLike", Color(0xFF25D061), "°C")
-
-            WeatherRow("강수량", "$rainAmount", Color(0xFF121417), "mm")
+            else -> {
+                WeatherRow("기온", "$temperature", Color(0xFF25D061), "°C")
+                HeightSpacer(12.dp)
+                WeatherRow("날씨", description, Color(0xFF25D061), "")
+                HeightSpacer(12.dp)
+                WeatherRow("체감온도", "$feelsLike", Color(0xFF25D061), "°C")
+                HeightSpacer(12.dp)
+                WeatherRow("강수량", "$rainAmount", Color(0xFF121417), "mm")
+            }
         }
     }
 }
@@ -107,7 +123,7 @@ fun WeatherRow(label: String, value: String, keyColor: Color, measure: String) {
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.width(252.dp)
+        modifier = Modifier.fillMaxWidth()
     ) {
         Text(
             text = label,
@@ -118,14 +134,16 @@ fun WeatherRow(label: String, value: String, keyColor: Color, measure: String) {
                 color = Color(0xFF64666A),
             )
         )
-        Row() {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Text(
                 text = value,
                 style = TextStyle(
-                    fontSize = 16.sp,
+                    fontSize = 12.sp,
                     fontFamily = FontFamily(Font(R.font.ownglyph_corncorn)),
-                    fontWeight = FontWeight(400),
-                    color = keyColor,
+                    fontWeight = FontWeight(500),
+                    color = if (value.isDigitsOnly()) keyColor else Color(0xFF121417),
                 )
             )
             if (measure.isNotEmpty()) {

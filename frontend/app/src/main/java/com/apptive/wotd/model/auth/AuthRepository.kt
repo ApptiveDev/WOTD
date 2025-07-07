@@ -9,12 +9,12 @@ class AuthRepository @Inject constructor(
     suspend fun sendSignUp(data: SignUpData): Pair<Boolean, SignUpTokenData?> {
         val request = SignUpRequest(
             agree = data.agree,
-            access_token =data.access_token
+            accessToken = data.accessToken
         )
 
         return try {
             val response = authApi.signUp(request)
-            if (response.isSuccessful && response.body()?.status == "success") {
+            if (response.isSuccessful && response.body()!!.isSuccess) {
                 Pair(true, response.body()?.data)
             } else {
                 Log.e("SignUp", "Response failed: ${response.errorBody()?.string()}")
