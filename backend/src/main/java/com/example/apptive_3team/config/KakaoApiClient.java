@@ -14,23 +14,17 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 public class KakaoApiClient {
 
     private final WebClient kakaoWebClient;
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public KakaoResponseDTO getUserInfo(String accessToken) {
         try {
-            String responseBody = kakaoWebClient.get()
+            return kakaoWebClient.get()
                     .uri("/v2/user/me")
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
                     .retrieve()
-                    .bodyToMono(String.class)
+                    .bodyToMono(KakaoResponseDTO.class)
                     .block();
-
-            return objectMapper.readValue(responseBody, KakaoResponseDTO.class);
-
         } catch (WebClientResponseException.Unauthorized e) {
             throw new InvalidKakaoAccessTokenException();
-        } catch (Exception e) {
-            throw new RuntimeException("카카오 사용자 정보 요청 실패", e);
         }
     }
 }
