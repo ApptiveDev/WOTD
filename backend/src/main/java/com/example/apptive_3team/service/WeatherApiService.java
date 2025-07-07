@@ -330,6 +330,34 @@ public class WeatherApiService {
     }
 
     /**
+     * 날씨 ID 리스트 내의 ID 값을 가지는 날씨 정보 중에서, 체감온도와 강수량을 기반으로 비슷한 날씨를 필터링하는 메서드.
+     *
+     * @param ids 날씨 ID 리스트
+     * @param temp 체감 온도
+     * @param rainAmount 강수량
+     * @return 필터링된 날씨 ID 리스트
+     */
+    public List<Long> getSimilarWeatherIdsFromIds(List<Long> ids, Double temp, Double rainAmount) {
+
+        double range = 1.5;
+        double minTemp = temp - range;
+        double maxTemp = temp + range;
+
+        // 강수량 범주 설정
+        String rainRange;
+        if (rainAmount == 0.0) {
+            rainRange = "ZERO";
+        } else if (rainAmount <= 3.0) {
+            rainRange = "LOW";
+        } else {
+            rainRange = "HIGH";
+        }
+
+        // Repository 호출
+        return weatherRepository.findSimilarWeatherIdsFromIds(ids, minTemp, maxTemp, rainRange);
+    }
+
+    /**
      * openWeatherApi 호출이 정상적으로 작동됐는지 확인하는 메서드.
      *
      * @param responseCode

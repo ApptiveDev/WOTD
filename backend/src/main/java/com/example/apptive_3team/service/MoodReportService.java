@@ -10,7 +10,9 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -23,8 +25,8 @@ public class MoodReportService {
     /**
      * 무드리포트를 DB에 저장하는 메서드.
      *
-     * @param userId
-     * @param moodReportRequestDTO
+     * @param userId 사용자 ID
+     * @param moodReportRequestDTO 무드 리포트 요청 DTO
      */
     public void saveMoodReport(Long userId, MoodReportRequestDTO moodReportRequestDTO) {
         MoodReport moodReport = new MoodReport();
@@ -47,7 +49,6 @@ public class MoodReportService {
         moodReport.setImg_etc(moodReportRequestDTO.img_etc());
         moodReport.setContent(moodReportRequestDTO.content());
         moodReport.setScore_feel(moodReportRequestDTO.score_feel());
-        moodReport.setScore_icon(moodReportRequestDTO.score_icon());
 
         moodReportRepository.save(moodReport);
     }
@@ -87,7 +88,7 @@ public class MoodReportService {
         MoodReport moodReport = moodReportRepository.findById(moodReportRequestDTO.id())
                 .orElseThrow(MoodReportNotFoundException::new);
 
-        if (moodReport.getUserId() != userId) {
+        if (!Objects.equals(moodReport.getUserId(), userId)) {
             throw new AccessDeniedException("무드 리포트를 수정할 권한이 없습니다.");
         }
 
@@ -107,7 +108,6 @@ public class MoodReportService {
         Optional.ofNullable(moodReportRequestDTO.img_etc()).ifPresent(moodReport::setImg_etc);
         Optional.ofNullable(moodReportRequestDTO.content()).ifPresent(moodReport::setContent);
         Optional.ofNullable(moodReportRequestDTO.score_feel()).ifPresent(moodReport::setScore_feel);
-        Optional.ofNullable(moodReportRequestDTO.score_icon()).ifPresent(moodReport::setScore_icon);
         Optional.ofNullable(moodReportRequestDTO.latitude()).ifPresent(moodReport::setLatitude);
         Optional.ofNullable(moodReportRequestDTO.longitude()).ifPresent(moodReport::setLongitude);
     }
@@ -123,10 +123,28 @@ public class MoodReportService {
         MoodReport moodReport = moodReportRepository.findById(moodReportId)
                 .orElseThrow(MoodReportNotFoundException::new);
 
-        if (moodReport.getUserId() != userId) {
+        if (!Objects.equals(moodReport.getUserId(), userId)) {
             throw new AccessDeniedException("무드 리포트를 삭제할 권한이 없습니다.");
         }
 
         moodReportRepository.delete(moodReport);
+    }
+
+    /**
+     * 날씨 ID 리스트를 stream하여 사용자 ID값과 동시에 관련있는 무드 리포트를 리스트로 반환하는 메서드.
+     *
+     * @param weatherIds 날씨 ID 리스트
+     * @param userId 사용자 ID
+     * @return 조건에 부합하는 무드 리포트들을 리스트로 반환
+     */
+    public List<MoodReport> getMoodReportsByWeatherIdsAndUserId(List<Long> weatherIds, Long userId) {
+        List<MoodReport> result = new ArrayList<>();
+
+        for (Long weatherId : weatherIds) {
+            moodReportRepository.findByWeatherIdAndUserId(weatherId, userId)
+                    .ifPresent(result::add);
+        }
+
+        return result;
     }
 }
