@@ -21,12 +21,9 @@ public class KakaoService {
     private final KakaoRepository kakaoRepository;
     private final JwtUtil jwtUtil;
 
-    /**
-     * 로그인 또는 회원가입 및 토큰 생성까지 포함
-     */
-    public UserResponseDTO loginOrRegisterWithToken(UserRequestDTO requestDTO) {
+    public UserResponseDTO signUp(UserRequestDTO requestDTO) {
         String accessToken = requestDTO.accessToken();
-        Boolean agree = requestDTO.agree(); // nullable
+        Boolean agree = requestDTO.agree();
 
         KakaoResponseDTO kakaoData = kakaoApiClient.getUserInfo(accessToken);
         String providerId = String.valueOf(kakaoData.id());
@@ -35,34 +32,34 @@ public class KakaoService {
                 .map(KakaoResponseDTO.Profile::nickname)
                 .orElse("카카오사용자");
 
-        User user = kakaoRepository.findByProviderId(providerId)
-                .map(existingUser -> {
-                    if (agree != null && existingUser.isAllow_notification() != agree) {
-                        existingUser.setAllow_notification(agree);
-                        kakaoRepository.save(existingUser);
-                    }
-                    return existingUser;
-                })
-                .orElseGet(() -> {
-                    if (agree == null) throw new RuntimeException("회원가입 시 동의(agree) 정보가 필요합니다.");
-                    User newUser = new User();
-                    newUser.setProviderId(providerId);
-                    newUser.setProviderType(User.ProviderType.KAKAO);
-                    newUser.setName(name);
-                    newUser.setAllow_notification(agree);
-                    newUser.setCreatedAt(LocalDateTime.now());
-                    return kakaoRepository.save(newUser);
-                });
+        // ❗ 이미 가입된 사용자인 경우 예외 발생
+        if (kakaoRepository.findByProviderId(providerId).isPresent()) {
+            throw new RuntimeException("이미 가입된 사용자입니다.");
+        }
+
+        // ❗ agree(알림 수신 동의)가 필수
+        if (agree == null) {
+            throw new RuntimeException("회원가입 시 알림 수신 동의가 필요합니다.");
+        }
+
+        // 새 유저 저장
+        User newUser = new User();
+        newUser.setProviderId(providerId);
+        newUser.setProviderType(User.ProviderType.KAKAO);
+        newUser.setName(name);
+        newUser.setAllow_notification(agree);
+        newUser.setCreatedAt(LocalDateTime.now());
+        kakaoRepository.save(newUser);
 
         // JWT 생성
-        String token = jwtUtil.createToken(user.getProviderId());
+        String token = jwtUtil.createToken(newUser.getProviderId());
 
         // 응답 DTO 생성
         return new UserResponseDTO(
-                user.getId(),
-                user.getName(),
-                user.getProviderId(),
-                user.getProviderType().name(),
+                newUser.getId(),
+                newUser.getName(),
+                newUser.getProviderId(),
+                newUser.getProviderType().name(),
                 token
         );
     }
