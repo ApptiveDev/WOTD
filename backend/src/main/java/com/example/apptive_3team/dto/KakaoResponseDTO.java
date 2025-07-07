@@ -1,10 +1,20 @@
 package com.example.apptive_3team.dto;
-
-// 카카오 API 응답을 받아오는 외부 API 호출용 DTO
-
 import java.util.Map;
 
 public record KakaoResponseDTO(
         Long id,
-        Map<String, Object> properties
-) {}
+        String connected_at,
+        Map<String, Object> properties,
+        KakaoAccount kakao_account
+) {
+    public record KakaoAccount(
+            Boolean profile_nickname_needs_agreement,
+            Profile profile
+    ) {}
+
+    public record Profile(
+            String nickname,
+            Boolean is_default_nickname
+    ) {}
+}
+

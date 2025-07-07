@@ -19,14 +19,6 @@ import java.util.Optional;
 public interface ItemRepository extends JpaRepository<Item, Long> {
 
     /**
-     * item_id를 기반으로 저장한 챙길 물품 데이터를 조회.
-     *
-     * @param id 챙길 물품 ID
-     * @return 챙길 물품 객체를 Optional로 감싼 형태로 반환.
-     */
-    Optional<Item> findById(Long id);
-
-    /**
      * user_id를 기반으로 저장한 챙길 물품 데이터를 조회.
      *
      * @param userId 사용자 ID

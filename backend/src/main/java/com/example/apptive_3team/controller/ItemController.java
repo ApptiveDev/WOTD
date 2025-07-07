@@ -49,7 +49,7 @@ public class ItemController {
     @GetMapping("/requestAll")
     public ResponseEntity<?> getItems(@RequestHeader("Authorization") String token) {
 
-        Long user_id = kakaoService.getUserIdFromAccessToken(token);
+        Long user_id = kakaoService.getUserIdFromJwtToken(token);
 
         Optional<List<ItemRequestDTO>> data = itemService.getItemsByUserId(user_id);
 
@@ -73,7 +73,7 @@ public class ItemController {
     public ResponseEntity<?> addItem(@RequestHeader("Authorization") String token,
                                      @Valid @RequestBody ItemRequestDTO request) {
 
-        Long user_id = kakaoService.getUserIdFromAccessToken(token);
+        Long user_id = kakaoService.getUserIdFromJwtToken(token);
 
         itemService.saveItem(user_id, request);
         return ResponseEntity.ok(ApiResponse.success("챙길 물품 등록을 완료했습니다."));
@@ -89,7 +89,7 @@ public class ItemController {
     public ResponseEntity<?> updateItem(@RequestHeader("Authorization") String token,
                                         @Valid @RequestBody ItemRequestDTO request) {
 
-        Long user_id = kakaoService.getUserIdFromAccessToken(token);
+        Long user_id = kakaoService.getUserIdFromJwtToken(token);
         itemService.updateItem(user_id, request);
 
         return ResponseEntity.ok(ApiResponse.success("챙길 물품 수정을 완료했습니다."));
@@ -104,7 +104,7 @@ public class ItemController {
     public ResponseEntity<?> deleteItem(@PathVariable Long itemId,
                                         @RequestHeader("Authorization") String token) {
 
-        Long user_id = kakaoService.getUserIdFromAccessToken(token);
+        Long user_id = kakaoService.getUserIdFromJwtToken(token);
         itemService.deleteItem(user_id, itemId); // ← itemId만 넘김
         return ResponseEntity.ok(ApiResponse.success("챙길 물품 삭제를 완료했습니다."));
     }
