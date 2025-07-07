@@ -1,5 +1,7 @@
 package com.example.apptive_3team.dto;
 
-public record StylingSuggestionRequestDTO(Double temp_feels_like,
-                                          Double rain_amount) {
+import jakarta.validation.constraints.NotBlank;
+
+public record StylingSuggestionRequestDTO(@NotBlank Double temp_feels_like,
+                                          @NotBlank Double rain_amount) {
 }

@@ -8,6 +8,7 @@ import com.example.apptive_3team.service.KakaoService;
 import com.example.apptive_3team.service.MoodReportService;
 import com.example.apptive_3team.service.StylingService;
 import com.example.apptive_3team.service.WeatherApiService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,7 +28,7 @@ public class StylingController {
 
     @PostMapping("/request")
     public ResponseEntity<?> getStylingSuggestionFromMoodReports(@RequestHeader("Authorization") String token,
-                                                                 @RequestBody StylingSuggestionRequestDTO request) {
+                                                                 @Valid @RequestBody StylingSuggestionRequestDTO request) {
 
         Long user_id = kakaoService.getUserIdFromJwtToken(token);
         List<MoodReport> moodReports = moodReportService.getMoodReportsByUserId(user_id);
