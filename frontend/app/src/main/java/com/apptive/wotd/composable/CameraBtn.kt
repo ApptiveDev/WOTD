@@ -23,20 +23,23 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.apptive.wotd.R
 import com.apptive.wotd.ui.theme.pretendard
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 
 @Composable
 fun CameraBtn() {
     val context = LocalContext.current
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        // 결과 처리 필요시 여기에 작성
+    }
 
     Button(
         onClick = {
             val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
             if (intent.resolveActivity(context.packageManager) != null) {
-                if (context is Activity) {
-                    context.startActivity(intent)
-                } else {
-                    Toast.makeText(context, "카메라 실행 실패", Toast.LENGTH_SHORT).show()
-                }
+                cameraLauncher.launch(intent)
             } else {
                 Toast.makeText(context, "카메라 앱을 찾을 수 없습니다", Toast.LENGTH_SHORT).show()
             }
@@ -48,7 +51,7 @@ fun CameraBtn() {
         ),
         contentPadding = PaddingValues(vertical = 8.dp),
         modifier = Modifier
-            .width(360.dp)
+            .fillMaxWidth()
             .height(40.dp)
     ) {
         Row(

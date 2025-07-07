@@ -7,6 +7,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.apptive.wotd.model.auth.SignUpViewModel
 import com.apptive.wotd.view.calender.CalendarPage
+import com.apptive.wotd.view.home.HomePage
 import com.apptive.wotd.view.login.LoginPage
 import com.apptive.wotd.view.moodreport.MoodReportPage
 
@@ -23,10 +24,13 @@ fun NavGraph(startPage: String){
             LoginPage(navController, signUpViewModel)
         }
         composable("CalenderPage"){
-            CalendarPage()
+            CalendarPage(navController)
         }
         composable("MoodReportPage"){
             MoodReportPage()
+        }
+        composable("HomePage"){
+            HomePage()
         }
     }
 }

@@ -17,9 +17,12 @@ import com.apptive.wotd.composable.BottomBar
 import com.apptive.wotd.composable.BottomTab
 import com.apptive.wotd.ui.theme.backgroundColor
 import com.apptive.wotd.view.calender.CalendarPage
+import com.apptive.wotd.view.home.HomePage
+import androidx.navigation.compose.rememberNavController
 
 @Composable
 fun MainScreen() {
+    val navController = rememberNavController()
     var selectedTab by rememberSaveable { mutableStateOf(BottomTab.Calendar) }
 
     Scaffold(
@@ -38,8 +41,8 @@ fun MainScreen() {
                 .background(backgroundColor)
         ) {
             when (selectedTab) {
-                BottomTab.Home -> {}
-                BottomTab.Calendar -> CalendarPage()
+                BottomTab.Home -> HomePage()
+                BottomTab.Calendar -> CalendarPage(navController)
                 BottomTab.MyPage -> {}
             }
         }

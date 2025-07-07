@@ -24,13 +24,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.apptive.wotd.R
 import com.apptive.wotd.ui.theme.pretendard
+import androidx.navigation.NavController
 
 @Composable
-fun MoodReportBtn() {
+fun MoodReportBtn(navController: NavController) {
     val context = LocalContext.current
 
     OutlinedButton (
         onClick = {
+            navController.navigate("MoodReportPage")
         },
         shape = RoundedCornerShape(4.dp),
         colors = ButtonDefaults.buttonColors(
@@ -40,7 +42,7 @@ fun MoodReportBtn() {
         border = BorderStroke(1.dp, Color(0xFF2BBF5F)),
         contentPadding = PaddingValues(vertical = 8.dp),
         modifier = Modifier
-            .width(360.dp)
+            .fillMaxWidth()
             .height(40.dp)
     ) {
         Row(
@@ -62,10 +64,4 @@ fun MoodReportBtn() {
             )
         }
     }
-}
-
-@Preview
-@Composable
-fun MoodReportBtnPreview() {
-    MoodReportBtn()
 }

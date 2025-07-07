@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -36,9 +37,8 @@ fun OutfitGrid() {
         columns = GridCells.Fixed(2),
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
             .height(370.dp)
-            .width(320.dp),
+            .fillMaxWidth(),
         userScrollEnabled = false,
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -64,7 +64,7 @@ fun OutfitCard(item: OutfitItem) {
             .aspectRatio(1f)
             .background(Color.White, shape = RoundedCornerShape(8.dp))
             .border(1.dp, Color(0xFFEBEEF2), shape = RoundedCornerShape(8.dp))
-            .width(156.dp)
+            .fillMaxWidth()
             .height(156.dp)
 
     ) {

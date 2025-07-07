@@ -41,7 +41,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.ui.text.input.TextFieldValue
 
 @Composable
 fun MoodReportPage() {
@@ -53,7 +52,7 @@ fun MoodReportPage() {
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(bottom = 60.dp, top = 60.dp)
+            .padding(20.dp)
     ) {
         OutfitGrid()
         SatisfactionEdit(selected = selected, onSelect = { selected = it })
@@ -72,7 +71,6 @@ fun SatisfactionEdit(selected: Int, onSelect: (Int) -> Unit) {
     Column (
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
     ) {
         Text(
             text = "오늘의 코디 만족도는 어땠나요?",
@@ -141,7 +139,6 @@ fun OverallReview(reviewText: String, onReviewChange: (String) -> Unit) {
     Column (
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
     ) {
         Text(
             text = "오늘 코디에 대한 간단한 총평을 적어주세요.",
@@ -196,7 +193,7 @@ fun EditConfirmBtn(enabled: Boolean, onClick: () -> Unit) {
         ),
         contentPadding = PaddingValues(vertical = 8.dp),
         modifier = Modifier
-            .width(360.dp)
+            .fillMaxWidth()
             .height(40.dp)
     ) {
         Row(

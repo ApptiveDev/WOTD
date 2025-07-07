@@ -1,4 +1,4 @@
-package com.apptive.wotd.view.calender
+package com.apptive.wotd.composable
 
 import android.util.Log
 import androidx.compose.foundation.Image
@@ -29,7 +29,8 @@ import com.apptive.wotd.composable.WidthSpacer
 
 @Composable
 fun WeatherCard(
-    viewModel: WeatherViewModel = hiltViewModel()
+    viewModel: WeatherViewModel = hiltViewModel(),
+    showTitle: Boolean = false
 ) {
     val weather by viewModel.weather.collectAsState()
     val TAG = "WeatherCard"
@@ -60,34 +61,63 @@ fun WeatherCard(
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .width(360.dp)
-            .height(184.dp)
+        modifier = Modifier.fillMaxWidth()
     ) {
         Row(
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            horizontalArrangement = if (showTitle) Arrangement.SpaceBetween else Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Image(
-                imageVector = ImageVector.vectorResource(R.drawable.ic_location_pin),
-                contentDescription = "위치 핀"
-            )
-            Text(
-                text = "금정구 장전동",
-                style = TextStyle(
-                    fontSize = 10.sp,
-                    fontFamily = pretendard,
-                    fontWeight = FontWeight(600),
-                    color = Color(0xFFA9ACB1),
+            if (showTitle) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Image(
+                        modifier = Modifier
+                            .padding(1.dp)
+                            .width(20.dp),
+                        imageVector = ImageVector.vectorResource(R.drawable.ic_frog_satisfied_3),
+                        contentDescription = "날씨 아이콘"
+                    )
+                    Text(
+                        text = "오늘의 날씨",
+                        style = TextStyle(
+                            fontSize = 20.sp,
+                            fontFamily = FontFamily(Font(R.font.ownglyph_corncorn)),
+                            fontWeight = FontWeight(400),
+                            color = Color(0xFF121417),
+                        )
+                    )
+                }
+            }
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Image(
+                    imageVector = ImageVector.vectorResource(R.drawable.ic_location_pin),
+                    contentDescription = "위치 핀"
                 )
-            )
+                Text(
+                    text = "금정구 장전동",
+                    style = TextStyle(
+                        fontSize = 10.sp,
+                        fontFamily = pretendard,
+                        fontWeight = FontWeight(600),
+                        color = Color(0xFFA9ACB1),
+                    )
+                )
+            }
+
         }
 
         Column(
             verticalArrangement = Arrangement.spacedBy(12.dp),
             horizontalAlignment = Alignment.Start,
             modifier = Modifier
-                .width(360.dp)
+                .fillMaxWidth()
                 .background(color = Color(0xFFF4F5F6), shape = RoundedCornerShape(12.dp))
                 .padding(20.dp)
         ) {
@@ -107,7 +137,7 @@ fun WeatherRow(label: String, value: String, keyColor: Color, measure: String) {
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.width(252.dp)
+        modifier = Modifier.fillMaxWidth()
     ) {
         Text(
             text = label,

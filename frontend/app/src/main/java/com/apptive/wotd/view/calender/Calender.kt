@@ -67,11 +67,12 @@ import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.apptive.wotd.composable.BottomBar
-import com.apptive.wotd.composable.BottomTab
 import com.apptive.wotd.composable.CameraBtn
 import com.apptive.wotd.composable.MoodReportBtn
 import com.apptive.wotd.composable.OutfitGrid
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import com.apptive.wotd.composable.WeatherCard
 
 @Composable
 fun MonthlyCalendar(
@@ -154,7 +155,7 @@ fun MonthlyCalendar(
 }
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CalendarPage() {
+fun CalendarPage(navController: NavController) {
     val sheetState = rememberModalBottomSheetState()
     val coroutineScope = rememberCoroutineScope()
 
@@ -274,27 +275,30 @@ fun CalendarPage() {
                 onDateSelected = { selectedDate = it }
             )
 
-            WeatherCard(viewModel = hiltViewModel())
-            HeightSpacer(8.dp)
-            CameraBtn()
-            HeightSpacer(8.dp)
-            MoodReportBtn()
-            HeightSpacer(16.dp)
-            TodayMoodCard()
-            HeightSpacer(8.dp)
-            OutfitGrid()
-        }
+            Column (
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 20.dp)
 
-        BottomBar(
-            selectedTab = BottomTab.Calendar,
-            onTabSelected = { /* TODO */ },
-            modifier = Modifier.align(Alignment.BottomCenter)
-        )
+            ) {
+                WeatherCard(viewModel = hiltViewModel(), showTitle = false)
+                HeightSpacer(8.dp)
+                CameraBtn()
+                HeightSpacer(8.dp)
+                MoodReportBtn(navController)
+                HeightSpacer(16.dp)
+                TodayMoodCard()
+                HeightSpacer(8.dp)
+                OutfitGrid()
+            }
+        }
     }
 }
 
 @Preview
 @Composable
 fun CalenderScreenPreview() {
-    CalendarPage()
+//    val navController = rememberNavController()
+//    CalendarPage(navController)
 }
