@@ -70,6 +70,8 @@ fun HomePage() {
         CameraBtn()
         HeightSpacer(12.dp)
         OutfitComment()
+        HeightSpacer(12.dp)
+        TodaysOutfitRecommend()
     }
 }
 

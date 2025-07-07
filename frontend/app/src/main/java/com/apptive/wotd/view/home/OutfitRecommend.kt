@@ -3,17 +3,26 @@ package com.apptive.wotd.view.home
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.absoluteOffset
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -27,16 +36,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import com.apptive.wotd.R
 import com.apptive.wotd.composable.HeightSpacer
 import com.apptive.wotd.composable.WidthSpacer
 import com.apptive.wotd.ui.theme.pretendard
 
 @Composable
-fun OutfitRecommend() {
-//    val date = weather?.tempAvg?.toInt() ?: 0
-//    val tempAvg = weather?.rainAmount?.toInt() ?: 0
-//    val tempFeelsLike = weather?.description ?: "맑음"
+fun TodaysOutfitRecommend() {
+    var selected by remember { mutableStateOf(0) }
 
     Column (
         horizontalAlignment = Alignment.Start,
@@ -63,11 +71,8 @@ fun OutfitRecommend() {
                 )
             )
             Image(
-                modifier = Modifier
-                    .padding(1.dp)
-                    .width(16.dp),
-                imageVector = ImageVector.vectorResource(R.drawable.ic_info),
-                contentDescription = "info 아이콘",
+                imageVector = ImageVector.vectorResource(R.drawable.btn_info),
+                contentDescription = "info 버튼",
             )
         }
         HeightSpacer(8.dp)
@@ -107,10 +112,12 @@ fun RecommendItem() {
         ) {
             Image(
                 imageVector = ImageVector.vectorResource(R.drawable.ic_frog_satisfied_4),
-                contentDescription = "info 아이콘",
+                contentDescription = "아이템",
                 contentScale = ContentScale.Fit,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
             )
+
         }
     }
 }
@@ -161,5 +168,5 @@ fun OutfitInfoRow(label: String, value: String, keyColor: Color, measure: String
 @Preview
 @Composable
 fun OutfitRecommendPreview() {
-    OutfitRecommend()
+    TodaysOutfitRecommend()
 }

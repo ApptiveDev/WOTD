@@ -1,5 +1,6 @@
 package com.apptive.wotd.composable
 
+import android.text.Html.ImageGetter
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -11,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
@@ -40,21 +42,25 @@ fun WeatherCard(
         viewModel.fetchWeather(
             lat = 35.228700446027,
             lon = 129.07900236976,
-            date = LocalDate.of(2025, 5, 12)
+            date = LocalDate.now()
         )
     }
 
-    // 날씨 데이터 상태 변화 감지
     LaunchedEffect(weather) {
         weather?.let {
             Log.d(TAG, "날씨 데이터 업데이트됨: $it")
         } ?: Log.d(TAG, "날씨 데이터가 null입니다")
     }
 
+    val keywords = listOf("thunderstorm", "drizzle", "rain", "snow", "clear", "clouds")
+
     val temperature = weather?.tempAvg?.toInt() ?: 0
     val feelsLike = weather?.tempFeelsLike?.toInt() ?: 0
     val rainAmount = weather?.rainAmount?.toInt() ?: 0
-    val description = weather?.description ?: "맑음"
+    val description = weather?.description
+        ?.lowercase()
+        ?.let { desc -> keywords.find { keyword -> keyword in desc } }
+        ?: "clear"
 
     Log.d(TAG, "UI 렌더링 - 기온: ${temperature}°C, 체감온도: ${feelsLike}°C, 강수량: ${rainAmount}mm, 날씨: $description")
 
@@ -123,7 +129,7 @@ fun WeatherCard(
         ) {
             WeatherRow("기온", "$temperature", Color(0xFF25D061), "°C")
 
-            WeatherRow("날씨", description, Color(0xFF25D061), "")
+            DescriptionRow("$description")
 
             WeatherRow("체감온도", "$feelsLike", Color(0xFF25D061), "°C")
 
@@ -131,6 +137,52 @@ fun WeatherCard(
         }
     }
 }
+
+@Composable
+fun DescriptionRow(value: String) {
+    val (imgResId, txt) = when (value) {
+        "thunderstorm" -> R.drawable.ic_weather_rainy to "비"
+        "drizzle" -> R.drawable.ic_weather_rainy to "비"
+        "rain" -> R.drawable.ic_weather_rainy to "비"
+        "snow" -> R.drawable.ic_weather_snowy to "눈"
+        "clear" -> R.drawable.ic_weather_sunny to "맑음"
+        "clouds" -> R.drawable.ic_weather_cloudy to "흐림"
+        else -> R.drawable.ic_weather_sunny to "맑음"
+    }
+
+    Row(
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(
+            text = "날씨",
+            style = TextStyle(
+                fontSize = 12.sp,
+                fontFamily = pretendard,
+                fontWeight = FontWeight(500),
+                color = Color(0xFF64666A),
+            )
+        )
+        Row() {
+            Image(
+                painter = painterResource(imgResId),
+                contentDescription = "날씨 아이콘 $value"
+            )
+            WidthSpacer(3.dp)
+            Text(
+                text = txt,
+                style = TextStyle(
+                    fontSize = 16.sp,
+                    fontFamily = FontFamily(Font(R.font.ownglyph_corncorn)),
+                    fontWeight = FontWeight(400),
+                    color = Color(0xFF64666A),
+                )
+            )
+        }
+    }
+}
+
 
 @Composable
 fun WeatherRow(label: String, value: String, keyColor: Color, measure: String) {

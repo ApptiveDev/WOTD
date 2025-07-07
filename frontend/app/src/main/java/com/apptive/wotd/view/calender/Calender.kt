@@ -153,6 +153,7 @@ fun MonthlyCalendar(
         }
     }
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalendarPage(navController: NavController) {
