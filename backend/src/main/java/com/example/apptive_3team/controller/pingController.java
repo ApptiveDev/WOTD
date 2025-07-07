@@ -1,4 +1,4 @@
-package com.example.apptive_3team;
+package com.example.apptive_3team.controller;
 
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.bind.annotation.GetMapping;

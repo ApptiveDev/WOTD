@@ -46,7 +46,7 @@ fun BottomBar(
         modifier = modifier
             .fillMaxWidth()
             .border(width = 1.dp, color = Color(0xFFEBEEF4))
-            .background(color = Color(0xFFFFFFFF))
+            background(color = Color(0xFFFFFFFF))
             .navigationBarsPadding()
     ) {
         BottomTab.values().forEach { tab ->

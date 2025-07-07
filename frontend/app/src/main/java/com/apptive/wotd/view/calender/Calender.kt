@@ -204,7 +204,6 @@ fun CalendarPage(navController: NavController) {
                                     currentMonth = currentMonth.minusMonths(1)
                                     triggered = true
                                 }
-
                                 dragAmount < -30 -> {
                                     currentMonth = currentMonth.plusMonths(1)
                                     triggered = true
@@ -293,6 +292,15 @@ fun CalendarPage(navController: NavController) {
                 OutfitGrid()
             }
         }
+        HeightSpacer(24.dp)
+        MonthlyCalendar(
+            yearMonth = currentMonth,
+            selectedDate = selectedDate,
+            events = eventDates,
+            onDateSelected = { selectedDate = it }
+        )
+
+        WeatherCard(viewModel = viewModel())
     }
 }
 

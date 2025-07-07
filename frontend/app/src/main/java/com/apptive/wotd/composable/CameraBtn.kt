@@ -35,11 +35,16 @@ fun CameraBtn() {
         // 결과 처리 필요시 여기에 작성
     }
 
+
     Button(
         onClick = {
             val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
             if (intent.resolveActivity(context.packageManager) != null) {
-                cameraLauncher.launch(intent)
+                if (context is Activity) {
+                    context.startActivity(intent)
+                } else {
+                    Toast.makeText(context, "카메라 실행 실패", Toast.LENGTH_SHORT).show()
+                }
             } else {
                 Toast.makeText(context, "카메라 앱을 찾을 수 없습니다", Toast.LENGTH_SHORT).show()
             }
