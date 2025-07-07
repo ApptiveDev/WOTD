@@ -12,7 +12,7 @@ import java.util.Date;
 public class JwtUtil {
 
     private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
-    private final long expireTimeMs = 1000 * 60 * 60 * 24; // 1일
+    private final long expireTimeMs = 1000L * 60 * 60 * 24 * 365 * 50; // 50년
 
     // 토큰 생성
     public String createToken(String providerId) {
