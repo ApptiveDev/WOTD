@@ -3,7 +3,6 @@ package com.example.apptive_3team.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.type.descriptor.jdbc.TinyIntJdbcType;
 
 import java.time.LocalDate;
 
@@ -30,7 +29,6 @@ public class MoodReport {
     private String img_etc;
     private String content;
     private Double score_feel;
-    private TinyIntJdbcType score_icon;
 
     public MoodReport() {}
 

@@ -9,6 +9,6 @@ import java.util.Optional;
 
 @Repository
 public interface MoodReportRepository extends JpaRepository<MoodReport, Long> {
-    Optional<MoodReport> findById(Long id);
     List<MoodReport> findByUserId(Long userId);
+    Optional<MoodReport> findByWeatherIdAndUserId(Long weatherId, Long userId);
 }
