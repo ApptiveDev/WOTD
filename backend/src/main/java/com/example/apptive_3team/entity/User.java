@@ -23,8 +23,6 @@ public class User {
     private String name;
     private Double latitude;
     private Double longitude;
-
-    @Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
     private Boolean allow_notification;
 
     @Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
