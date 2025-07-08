@@ -27,7 +27,7 @@ public class KakaoController {
         String jwtToken = JwtToken.replace("Bearer ", "");
         Long userId = kakaoService.getUserIdFromJwtToken(jwtToken);
 
-        User user = kakaoService.findUserById(userId); // 별도 메서드로 구현해도 됨
+        User user = kakaoService.findUserById(userId);
         return ResponseEntity.ok(ApiResponse.success("내 정보 조회 성공", user));
     }
 

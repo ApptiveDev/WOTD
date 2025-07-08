@@ -12,7 +12,7 @@ public class pingController {
 
     @GetMapping("/")
     public void index(HttpServletResponse response) throws IOException {
-        response.sendRedirect("/index.html"); // 직접 리디렉션 처리
+        response.sendRedirect("/index.html");
     }
 
     @GetMapping("/ping")
