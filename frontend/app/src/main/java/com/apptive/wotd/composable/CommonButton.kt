@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.provider.MediaStore
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -20,6 +21,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -34,6 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.apptive.wotd.R
 import com.apptive.wotd.ui.theme.pretendard
 
@@ -130,7 +133,7 @@ fun CameraBtn(
         ),
         contentPadding = PaddingValues(vertical = 8.dp),
         modifier = Modifier
-            .width(320.dp)
+            .fillMaxWidth()
             .height(40.dp)
     ) {
         Row(
@@ -148,6 +151,46 @@ fun CameraBtn(
                     fontFamily = pretendard,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
+                )
+            )
+        }
+    }
+}
+
+@Composable
+fun MoodReportBtn(navController: NavController) {
+    val context = LocalContext.current
+
+    OutlinedButton (
+        onClick = {
+            navController.navigate("MoodReportPage")
+        },
+        shape = RoundedCornerShape(4.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.White,
+            contentColor = Color(0xFF2BBF5F)
+        ),
+        border = BorderStroke(1.dp, Color(0xFF2BBF5F)),
+        contentPadding = PaddingValues(vertical = 8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(40.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally)
+        ) {
+            Image(
+                imageVector = ImageVector.vectorResource(R.drawable.btn_mood_report),
+                contentDescription = "무드 리포트 버튼"
+            )
+            Text(
+                text = "무드 리포트 수정하기",
+                style = TextStyle(
+                    fontSize = 12.sp,
+                    fontFamily = pretendard,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF2BBF5F)
                 )
             )
         }
