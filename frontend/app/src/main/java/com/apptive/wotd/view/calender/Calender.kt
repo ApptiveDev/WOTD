@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
@@ -33,10 +35,14 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.apptive.wotd.R
+import com.apptive.wotd.composable.CameraBtn
 import com.apptive.wotd.composable.HeightSpacer
+import com.apptive.wotd.composable.MoodReportBtn
+import com.apptive.wotd.composable.OutfitGrid
 import com.apptive.wotd.composable.calander.CalendarView
 import com.apptive.wotd.composable.noRippleClickable
 import com.apptive.wotd.ui.theme.pretendard
@@ -50,12 +56,16 @@ fun CalendarPage(
     navController: NavController
 ) {
     var selectedDate by remember { mutableStateOf<LocalDate?>(null) }
-    LaunchedEffect(Unit) {
-        navController.navigate("ProgressPage/1")
-    }
+    val scrollState = rememberScrollState()
+//    LaunchedEffect(Unit) {
+//        navController.navigate("ProgressPage/1")
+//    }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp)
+            .verticalScroll(scrollState)
     ) {
         HeightSpacer(60.dp)
         CalendarView(
@@ -83,7 +93,16 @@ fun CalendarPage(
                 )
             )
         }
+        HeightSpacer(10.dp)
+        WeatherCard(viewModel = hiltViewModel())
         HeightSpacer(8.dp)
-        WeatherCard()
+        CameraBtn( {} )
+        HeightSpacer(8.dp)
+        MoodReportBtn(navController)
+        HeightSpacer(16.dp)
+        TodayMoodCard()
+        HeightSpacer(8.dp)
+        OutfitGrid()
+
     }
 }

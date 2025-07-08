@@ -8,9 +8,11 @@ import androidx.navigation.compose.rememberNavController
 import com.apptive.wotd.model.auth.SignUpViewModel
 import com.apptive.wotd.view.main.MainPage
 import com.apptive.wotd.view.calender.CalendarPage
+import com.apptive.wotd.view.home.HomePage
 import com.apptive.wotd.view.login.LoginPage
 import com.apptive.wotd.view.main.LoadingPage
 import com.apptive.wotd.view.main.ProgressPage
+import com.apptive.wotd.view.moodreport.MoodReportPage
 
 @Composable
 fun NavGraph(startPage: String){
@@ -28,6 +30,12 @@ fun NavGraph(startPage: String){
         }
         composable("CalendarPage"){
             CalendarPage(navController)
+        }
+        composable("HomePage"){
+            HomePage()
+        }
+        composable("MoodReportPage"){
+            MoodReportPage()
         }
         composable("ProgressPage/{phase}") { backStackEntry ->
             val phase = backStackEntry.arguments?.getString("phase") ?: ""
