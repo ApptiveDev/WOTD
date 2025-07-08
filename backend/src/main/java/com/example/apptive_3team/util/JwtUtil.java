@@ -37,7 +37,7 @@ public class JwtUtil {
             Jwts.parserBuilder()
                     .setSigningKey(key)
                     .build()
-                    .parseClaimsJws(token); // 여기서 예외 발생 시 catch로 이동
+                    .parseClaimsJws(token);
 
             return true;
         } catch (Exception e) {
