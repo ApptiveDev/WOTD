@@ -6,6 +6,7 @@ import com.example.apptive_3team.exception.MoodReport.MoodReportNotFoundExceptio
 import com.example.apptive_3team.exception.WeatherData.GetWeatherApiException;
 import com.example.apptive_3team.exception.WeatherData.NotSupportedLocationException;
 import com.example.apptive_3team.exception.WeatherData.NotSupportedDateException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -193,8 +194,14 @@ public class GlobalExceptionHandler {
      * 명시되지 않은 에러 검사
      */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<?>> handleAllUnhandled(Exception ex) {
-        log.error("🔥 [예외 발생] - message: {}", ex.getMessage(), ex);
+    public ResponseEntity<ApiResponse<?>> handleAllUnhandled(Exception ex, HttpServletRequest request) {
+        log.error("❗ [Global] [{} {}] 처리되지 않은 예외 - URI: {}, 에러: {}",
+                request.getMethod(),
+                request.getRequestURI(),
+                ex.getClass().getSimpleName(),
+                ex.getMessage(),
+                ex
+        );
 
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
