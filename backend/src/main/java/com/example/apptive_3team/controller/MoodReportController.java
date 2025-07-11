@@ -10,12 +10,14 @@ import com.example.apptive_3team.service.MoodReportService;
 import com.example.apptive_3team.service.WeatherApiService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestController
 @RequestMapping("/moodReport")
 @RequiredArgsConstructor
@@ -31,6 +33,7 @@ public class MoodReportController {
      */
     @GetMapping("/request/{moodReportId}")
     public ResponseEntity<?> getMoodReport(@PathVariable Long moodReportId) {
+        log.info("📥 [GET] moodReport/request/{moodReportId} API 호출됨");
 
         MoodReport moodReport = moodReportService.getMoodReport(moodReportId);
         WeatherDataDTO weatherData = weatherApiService.getWeatherDataById(moodReport.getWeatherId());
@@ -53,6 +56,7 @@ public class MoodReportController {
      */
     @GetMapping("/requestAll")
     public ResponseEntity<?> getMoodReports(@RequestHeader("Authorization") String token) {
+        log.info("📥 [GET] moodReport/requestAll API 호출됨");
 
         Long user_id = kakaoService.getUserIdFromJwtToken(token);
 
@@ -77,6 +81,7 @@ public class MoodReportController {
     @PostMapping("/add")
     public ResponseEntity<?> addMoodReport(@RequestHeader("Authorization") String token,
                                      @Valid @RequestBody MoodReportRequestDTO request) {
+        log.info("📥 [POST] moodReport/add API 호출됨");
 
         Long user_id = kakaoService.getUserIdFromJwtToken(token);
 
@@ -93,6 +98,7 @@ public class MoodReportController {
     @PostMapping("/update")
     public ResponseEntity<?> updateMoodReport(@RequestHeader("Authorization") String token,
                                         @Valid @RequestBody MoodReportRequestDTO request) {
+        log.info("📥 [POST] moodReport/update API 호출됨");
 
         Long user_id = kakaoService.getUserIdFromJwtToken(token);
         
@@ -109,6 +115,7 @@ public class MoodReportController {
     @DeleteMapping("/delete/{moodReportId}")
     public ResponseEntity<?> deleteMoodReport(@PathVariable Long moodReportId,
                                         @RequestHeader("Authorization") String token) {
+        log.info("📥 [DELETE] moodReport/delete/{moodReportId} API 호출됨");
 
         Long user_id = kakaoService.getUserIdFromJwtToken(token);
         
