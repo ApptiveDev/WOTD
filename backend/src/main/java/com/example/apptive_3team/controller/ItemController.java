@@ -6,6 +6,7 @@ import com.example.apptive_3team.service.ItemService;
 import com.example.apptive_3team.service.KakaoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,6 +16,7 @@ import java.util.Optional;
 /**
  * 챙길 물품 관련 기능을 수행하는 Controller.
  */
+@Slf4j
 @RestController
 @RequestMapping("/item")
 @RequiredArgsConstructor
@@ -30,6 +32,7 @@ public class ItemController {
      */
     @GetMapping("/request/{itemId}")
     public ResponseEntity<?> getItem(@PathVariable Long itemId) {
+        log.info("📥 [GET] item/request/{itemId} API 호출됨");
 
         Optional<ItemRequestDTO> data = itemService.getItemById(itemId);
         return ResponseEntity.ok(ApiResponse.success("챙길 물품 조회를 완료했습니다.", data));
@@ -48,6 +51,7 @@ public class ItemController {
      */
     @GetMapping("/requestAll")
     public ResponseEntity<?> getItems(@RequestHeader("Authorization") String token) {
+        log.info("📥 [GET] item/requestAll API 호출됨");
 
         Long user_id = kakaoService.getUserIdFromJwtToken(token);
 
@@ -72,6 +76,7 @@ public class ItemController {
     @PostMapping("/add")
     public ResponseEntity<?> addItem(@RequestHeader("Authorization") String token,
                                      @Valid @RequestBody ItemRequestDTO request) {
+        log.info("📥 [POST] item/add API 호출됨");
 
         Long user_id = kakaoService.getUserIdFromJwtToken(token);
 
@@ -88,6 +93,7 @@ public class ItemController {
     @PostMapping("/update")
     public ResponseEntity<?> updateItem(@RequestHeader("Authorization") String token,
                                         @Valid @RequestBody ItemRequestDTO request) {
+        log.info("📥 [POST] /item/update API 호출됨");
 
         Long user_id = kakaoService.getUserIdFromJwtToken(token);
         itemService.updateItem(user_id, request);
@@ -103,6 +109,7 @@ public class ItemController {
     @DeleteMapping("/delete/{itemId}")
     public ResponseEntity<?> deleteItem(@PathVariable Long itemId,
                                         @RequestHeader("Authorization") String token) {
+        log.info("📥 [DELETE] /item/delete/{itemId} API 호출됨");
 
         Long user_id = kakaoService.getUserIdFromJwtToken(token);
         itemService.deleteItem(user_id, itemId); // ← itemId만 넘김
