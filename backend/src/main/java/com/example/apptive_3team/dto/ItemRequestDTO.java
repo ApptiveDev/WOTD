@@ -1,6 +1,7 @@
 package com.example.apptive_3team.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
@@ -13,5 +14,5 @@ import java.time.LocalDate;
  */
 public record ItemRequestDTO(Long id,
                              @NotBlank @Size(max = 50, message = "가능한 글자수 50자를 넘으셨습니다.")String name,
-                             LocalDate deadline) {
+                             @NotNull LocalDate deadline) {
 }
