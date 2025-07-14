@@ -57,14 +57,7 @@ public class ItemController {
 
         Optional<List<ItemRequestDTO>> data = itemService.getItemsByUserId(user_id);
 
-        if (data.isPresent() && !data.get().isEmpty()) {
-            return ResponseEntity.ok(ApiResponse.success("챙길 물품 조회를 완료했습니다.", data));
-        } else {
-            return ResponseEntity.ok(ApiResponse.success(
-                    "챙길 물품 조회를 완료했습니다.",
-                    "챙겨야 할 물품이 없어요! 혹시 챙겨야 할 물품이 있나요?"
-            ));
-        }
+        return ResponseEntity.ok(ApiResponse.success("챙길 물품 조회를 완료했습니다.", data));
     }
 
     /**
