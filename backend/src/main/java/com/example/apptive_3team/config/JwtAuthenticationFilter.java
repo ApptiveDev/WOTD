@@ -42,14 +42,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                         kakaoUserId, null, List.of(new SimpleGrantedAuthority("ROLE_USER")));
                         SecurityContextHolder.getContext().setAuthentication(authToken);
                     }
-                } else if (jwtUtil.validateToken(token)) {
+                } else {
+                    log.info("토큰 유효성 검사 및 userId 추출");
+
                     String userId = jwtUtil.getUserIdFromToken(token);
+
+                    // 사용자 인증 객체
                     UsernamePasswordAuthenticationToken authToken =
                             new UsernamePasswordAuthenticationToken(
                                     userId, null, List.of(new SimpleGrantedAuthority("ROLE_USER")));
+
                     SecurityContextHolder.getContext().setAuthentication(authToken);
-                } else {
-                    log.warn("유효하지 않은 JWT 토큰");
                 }
             } catch (Exception e) {
                 log.error("토큰 검증 중 예외 발생", e);
