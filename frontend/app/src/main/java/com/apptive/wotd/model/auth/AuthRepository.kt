@@ -1,6 +1,8 @@
 package com.apptive.wotd.model.auth
 
 import android.util.Log
+import com.apptive.wotd.view.login.ApiResponse
+import com.apptive.wotd.view.login.UserMeResponse
 import javax.inject.Inject
 
 class AuthRepository @Inject constructor(
@@ -24,5 +26,10 @@ class AuthRepository @Inject constructor(
             Log.e("SignUp", "Network error", e)
             Pair(false, null)
         }
+    }
+
+    suspend fun getMe(token: String): ApiResponse<UserMeResponse> {
+        val response = authApi.getMe("Bearer $token")
+        return response.body() ?: throw Exception("No response body")
     }
 }

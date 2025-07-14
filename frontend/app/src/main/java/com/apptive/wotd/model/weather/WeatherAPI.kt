@@ -1,4 +1,4 @@
-package com.apptive.wotd.model.auth
+package com.apptive.wotd.model.weather
 
 import retrofit2.http.Body
 import retrofit2.http.POST

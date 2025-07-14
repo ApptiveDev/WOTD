@@ -3,7 +3,10 @@ package com.apptive.wotd.view.main
 import android.app.Activity
 import android.content.Intent
 import android.provider.MediaStore
-import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import android.net.Uri
+import android.util.Log
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -15,7 +18,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -56,14 +58,36 @@ import com.apptive.wotd.composable.WhiteScreenModifier
 import com.apptive.wotd.ui.theme.backgroundColor
 import com.apptive.wotd.ui.theme.primaryColor
 import com.apptive.wotd.view.calender.CalendarPage
+import com.apptive.wotd.view.home.HomePage
 import kotlinx.coroutines.delay
+import androidx.compose.runtime.remember
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import com.apptive.wotd.model.moodreport.ImageApi
+import java.io.File
+import java.io.FileOutputStream
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import android.content.Context
+import kotlinx.coroutines.withContext
+import com.apptive.wotd.model.moodreport.MoodReportApi
+import com.apptive.wotd.model.moodreport.MoodReportRequestDTO
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import com.apptive.wotd.model.auth.TokenManager
+import com.apptive.wotd.model.moodreport.MoodReportViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
 fun MainPage(
     navController: NavController
 ) {
     var selectedTab by rememberSaveable { mutableStateOf(BottomTab.Calendar) }
-
     Scaffold(
         bottomBar = {
             BottomBar(
@@ -80,7 +104,7 @@ fun MainPage(
                 .background(backgroundColor)
         ) {
             when (selectedTab) {
-                BottomTab.Home -> {}
+                BottomTab.Home -> HomePage()
                 BottomTab.Calendar -> CalendarPage(navController)
                 BottomTab.MyPage -> {}
             }
@@ -94,6 +118,161 @@ fun ProgressPage(
     phase: Int
 ) {
     val context = LocalContext.current
+    val activity = context as? Activity
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
+    val moodReportViewModel: MoodReportViewModel = hiltViewModel()
+    val addState by moodReportViewModel.addState
+    val errorState by moodReportViewModel.errorState
+    
+    val prefs = context.getSharedPreferences("image_links", Context.MODE_PRIVATE)
+    var imgTopLink by remember { mutableStateOf(prefs.getString("img_top", "") ?: "") }
+    var imgBottomLink by remember { mutableStateOf(prefs.getString("img_bottom", "") ?: "") }
+    var imgEtcLink by remember { mutableStateOf(prefs.getString("img_etc", "") ?: "") }
+    
+    val selectedDateString = prefs.getString("selected_date", LocalDate.now().toString()) ?: LocalDate.now().toString()
+
+    fun uriToMultipart(context: Context, uri: Uri): MultipartBody.Part? {
+        val inputStream = context.contentResolver.openInputStream(uri) ?: return null
+        val file = File(context.cacheDir, "upload_image.png")
+        val outputStream = FileOutputStream(file)
+        inputStream.copyTo(outputStream)
+        inputStream.close()
+        outputStream.close()
+        val requestFile = file.asRequestBody("image/png".toMediaTypeOrNull())
+        return MultipartBody.Part.createFormData("image", file.name, requestFile)
+    }
+
+    val retrofit = Retrofit.Builder()
+        .baseUrl("http://43.203.233.18:8080/")
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+    val imageApi = retrofit.create(ImageApi::class.java)
+    val moodReportApi = retrofit.create(MoodReportApi::class.java)
+
+    val imageLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val data = result.data
+            val uri = data?.data
+            val goNext: () -> Unit = {
+                navController.navigate(
+                    when (phase) {
+                        1 -> "ProgressPage/2"
+                        2 -> "ProgressPage/3"
+                        else -> {
+                            val now = LocalDateTime.now()
+                            val request = MoodReportRequestDTO(
+                                date = selectedDateString,
+                                created_at = LocalDate.now().toString(),
+                                latitude = 35.2433,
+                                longitude = 129.0752,
+                                img_top = imgTopLink,
+                                img_bottom = imgBottomLink,
+                                img_etc = imgEtcLink,
+                                content = " ",
+                                score_feel = 0.0,
+                                score_icon = null
+                            )
+                            val rawToken = TokenManager.getAccessToken(context)
+                            val token = rawToken?.trim()
+                            if (!token.isNullOrBlank()) {
+                                moodReportViewModel.addMoodReport(token, request)
+                            } else {
+                                Log.e("MoodReport", "토큰이 없습니다. 무드리포트 요청을 보내지 않습니다.")
+                            }
+                            "CalendarPage"
+                        }
+                    }
+                )
+            }
+            if (uri != null) {
+                imageUri = uri
+                CoroutineScope(Dispatchers.IO).launch {
+                    val part = uriToMultipart(context, uri)
+                    if (part != null) {
+                        try {
+                            val response = imageApi.uploadImage(part)
+                            if (response.isSuccessful) {
+                                val respString = response.body()?.string()
+                                Log.d("ImageUpload", "업로드 성공: $respString")
+                                // 이미지 링크 저장
+                                when (phase) {
+                                    1 -> {
+                                        imgTopLink = respString ?: ""
+                                        prefs.edit().putString("img_top", imgTopLink).apply()
+                                    }
+                                    2 -> {
+                                        imgBottomLink = respString ?: ""
+                                        prefs.edit().putString("img_bottom", imgBottomLink).apply()
+                                    }
+                                    3 -> {
+                                        imgEtcLink = respString ?: ""
+                                        prefs.edit().putString("img_etc", imgEtcLink).apply()
+                                    }
+                                }
+                                withContext(Dispatchers.Main) { goNext() }
+                            } else {
+                                Log.e("ImageUpload", "업로드 실패: ${response.errorBody()?.string()}")
+                            }
+                        } catch (e: Exception) {
+                            Log.e("ImageUpload", "업로드 예외", e)
+                        }
+                    }
+                }
+            } else if (data?.extras?.get("data") != null) {
+                val bitmap = data.extras?.get("data") as? android.graphics.Bitmap
+                if (bitmap != null) {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        val file = File(context.cacheDir, "upload_image_camera.png")
+                        val outputStream = FileOutputStream(file)
+                        bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, outputStream)
+                        outputStream.close()
+                        val requestFile = file.asRequestBody("image/png".toMediaTypeOrNull())
+                        val part = MultipartBody.Part.createFormData("image", file.name, requestFile)
+                        try {
+                            val response = imageApi.uploadImage(part)
+                            if (response.isSuccessful) {
+                                val respString = response.body()?.string()
+                                Log.d("ImageUpload", "업로드 성공: $respString")
+                                // 이미지 링크 저장
+                                when (phase) {
+                                    1 -> {
+                                        imgTopLink = respString ?: ""
+                                        prefs.edit().putString("img_top", imgTopLink).apply()
+                                    }
+                                    2 -> {
+                                        imgBottomLink = respString ?: ""
+                                        prefs.edit().putString("img_bottom", imgBottomLink).apply()
+                                    }
+                                    3 -> {
+                                        imgEtcLink = respString ?: ""
+                                        prefs.edit().putString("img_etc", imgEtcLink).apply()
+                                    }
+                                }
+                                withContext(Dispatchers.Main) { goNext() }
+                            } else {
+                                Log.e("ImageUpload", "업로드 실패: ${response.errorBody()?.string()}")
+                            }
+                        } catch (e: Exception) {
+                            Log.e("ImageUpload", "업로드 예외", e)
+                        }
+                    }
+                } else {
+                    goNext()
+                }
+            }
+        }
+    }
+
+    fun showImagePicker() {
+        val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        val galleryIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        val chooser = Intent.createChooser(galleryIntent, "이미지 선택 또는 촬영")
+        chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, arrayOf(cameraIntent))
+        imageLauncher.launch(chooser)
+    }
+
     Column(
         modifier = WhiteScreenModifier,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -141,27 +320,22 @@ fun ProgressPage(
         )
         Spacer(modifier = Modifier.weight(1f))
         CameraBtn() {
-            /*
-            val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-            if (intent.resolveActivity(context.packageManager) != null) {
-                if (context is Activity) {
-                    context.startActivity(intent)
-                } else {
-                    Toast.makeText(context, "카메라 실행 실패", Toast.LENGTH_SHORT).show()
-                }
-            } else {
-                Toast.makeText(context, "카메라 앱을 찾을 수 없습니다", Toast.LENGTH_SHORT).show()
-            }
-             */
-            navController.navigate(
-                when (phase) {
-                    1 -> "LoadingPage/1"
-                    2 -> "LoadingPage/2"
-                    else -> "LoadingPage/3"
-                }
-            )
+            showImagePicker()
         }
         HeightSpacer(58.dp)
+    }
+
+    // 결과 처리
+    LaunchedEffect(addState) {
+        if (addState != null) {
+            prefs.edit().clear().apply()
+            // 성공 후 페이지 이동 등 처리 가능
+        }
+    }
+    LaunchedEffect(errorState) {
+        if (errorState != null) {
+            // 에러 처리 (예: Toast 등)
+        }
     }
 }
 
