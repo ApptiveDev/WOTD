@@ -14,7 +14,7 @@ class MoodReportViewModel @Inject constructor(
     val addState = mutableStateOf<MoodReportResponse?>(null)
     val errorState = mutableStateOf<String?>(null)
     val allReportsState = mutableStateOf<List<MoodReportItem>?>(null)
-    val singleReportState = mutableStateOf<MoodReportResponse?>(null)
+    val singleReportState = mutableStateOf<MoodReportItem?>(null)
 
     fun addMoodReport(token: String, request: MoodReportRequestDTO) {
         viewModelScope.launch {
@@ -41,13 +41,24 @@ class MoodReportViewModel @Inject constructor(
     fun getMoodReport(token: String, moodReportId: Long) {
         viewModelScope.launch {
             val result = moodReportRepository.getMoodReport(token, moodReportId)
-            singleReportState.value = result
+            singleReportState.value = result?.data
         }
     }
 
     fun updateMoodReport(token: String, request: MoodReportUpdateRequest) {
         viewModelScope.launch {
             val result = moodReportRepository.updateMoodReport(token, request)
+            if (result != null && result.isSuccess) {
+                addState.value = result
+            } else {
+                errorState.value = result?.message ?: "네트워크 오류"
+            }
+        }
+    }
+
+    fun deleteMoodReport(token: String, moodReportId: Long) {
+        viewModelScope.launch {
+            val result = moodReportRepository.deleteMoodReport(token, moodReportId)
             if (result != null && result.isSuccess) {
                 addState.value = result
             } else {

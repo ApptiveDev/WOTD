@@ -82,17 +82,31 @@ import java.time.format.DateTimeFormatter
 import com.apptive.wotd.model.auth.TokenManager
 import com.apptive.wotd.model.moodreport.MoodReportViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import androidx.compose.runtime.collectAsState
+
+class MainViewModel : ViewModel() {
+    private val _selectedTab = MutableStateFlow(BottomTab.Calendar)
+    val selectedTab: StateFlow<BottomTab> = _selectedTab.asStateFlow()
+    fun setTab(tab: BottomTab) { _selectedTab.value = tab }
+}
 
 @Composable
 fun MainPage(
-    navController: NavController
+    navController: NavController,
+    mainViewModel: MainViewModel = viewModel()
 ) {
-    var selectedTab by rememberSaveable { mutableStateOf(BottomTab.Calendar) }
+    val selectedTab by mainViewModel.selectedTab.collectAsState()
+    Log.d("MainPage", "selectedTab: $selectedTab")
     Scaffold(
         bottomBar = {
             BottomBar(
                 selectedTab = selectedTab,
-                onTabSelected = { selectedTab = it }
+                onTabSelected = { mainViewModel.setTab(it) }
             )
         },
         containerColor = backgroundColor,
@@ -104,9 +118,17 @@ fun MainPage(
                 .background(backgroundColor)
         ) {
             when (selectedTab) {
-                BottomTab.Home -> HomePage()
-                BottomTab.Calendar -> CalendarPage(navController)
-                BottomTab.MyPage -> {}
+                BottomTab.Home -> {
+                    Log.d("MainPage", "HomePage 진입")
+                    HomePage()
+                }
+                BottomTab.Calendar -> {
+                    Log.d("MainPage", "CalendarPage 진입")
+                    CalendarPage(navController, mainViewModel)
+                }
+                BottomTab.MyPage -> {
+                    Log.d("MainPage", "MyPage 진입")
+                }
             }
         }
     }
@@ -149,6 +171,19 @@ fun ProgressPage(
     val imageApi = retrofit.create(ImageApi::class.java)
     val moodReportApi = retrofit.create(MoodReportApi::class.java)
 
+    fun uploadImage(
+        newImagePart: MultipartBody.Part,
+        onSuccess: (String) -> Unit
+    ) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val response = imageApi.uploadImage(newImagePart)
+            if (response.isSuccessful) {
+                val newUrl = response.body()?.string() ?: ""
+                withContext(Dispatchers.Main) { onSuccess(newUrl) }
+            }
+        }
+    }
+
     val imageLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -161,7 +196,6 @@ fun ProgressPage(
                         1 -> "ProgressPage/2"
                         2 -> "ProgressPage/3"
                         else -> {
-                            val now = LocalDateTime.now()
                             val request = MoodReportRequestDTO(
                                 date = selectedDateString,
                                 created_at = LocalDate.now().toString(),
@@ -172,7 +206,6 @@ fun ProgressPage(
                                 img_etc = imgEtcLink,
                                 content = " ",
                                 score_feel = 0.0,
-                                score_icon = null
                             )
                             val rawToken = TokenManager.getAccessToken(context)
                             val token = rawToken?.trim()
@@ -181,42 +214,30 @@ fun ProgressPage(
                             } else {
                                 Log.e("MoodReport", "토큰이 없습니다. 무드리포트 요청을 보내지 않습니다.")
                             }
-                            "CalendarPage"
+                            "MainPage"
                         }
                     }
                 )
             }
             if (uri != null) {
                 imageUri = uri
-                CoroutineScope(Dispatchers.IO).launch {
-                    val part = uriToMultipart(context, uri)
-                    if (part != null) {
-                        try {
-                            val response = imageApi.uploadImage(part)
-                            if (response.isSuccessful) {
-                                val respString = response.body()?.string()
-                                Log.d("ImageUpload", "업로드 성공: $respString")
-                                // 이미지 링크 저장
-                                when (phase) {
-                                    1 -> {
-                                        imgTopLink = respString ?: ""
-                                        prefs.edit().putString("img_top", imgTopLink).apply()
-                                    }
-                                    2 -> {
-                                        imgBottomLink = respString ?: ""
-                                        prefs.edit().putString("img_bottom", imgBottomLink).apply()
-                                    }
-                                    3 -> {
-                                        imgEtcLink = respString ?: ""
-                                        prefs.edit().putString("img_etc", imgEtcLink).apply()
-                                    }
-                                }
-                                withContext(Dispatchers.Main) { goNext() }
-                            } else {
-                                Log.e("ImageUpload", "업로드 실패: ${response.errorBody()?.string()}")
-                            }
-                        } catch (e: Exception) {
-                            Log.e("ImageUpload", "업로드 예외", e)
+                val part = uriToMultipart(context, uri)
+                if (part != null) {
+                    when (phase) {
+                        1 -> uploadImage(part) { newUrl ->
+                            imgTopLink = newUrl
+                            prefs.edit().putString("img_top", imgTopLink).apply()
+                            goNext()
+                        }
+                        2 -> uploadImage(part) { newUrl ->
+                            imgBottomLink = newUrl
+                            prefs.edit().putString("img_bottom", imgBottomLink).apply()
+                            goNext()
+                        }
+                        3 -> uploadImage(part) { newUrl ->
+                            imgEtcLink = newUrl
+                            prefs.edit().putString("img_etc", imgEtcLink).apply()
+                            goNext()
                         }
                     }
                 }
@@ -230,32 +251,22 @@ fun ProgressPage(
                         outputStream.close()
                         val requestFile = file.asRequestBody("image/png".toMediaTypeOrNull())
                         val part = MultipartBody.Part.createFormData("image", file.name, requestFile)
-                        try {
-                            val response = imageApi.uploadImage(part)
-                            if (response.isSuccessful) {
-                                val respString = response.body()?.string()
-                                Log.d("ImageUpload", "업로드 성공: $respString")
-                                // 이미지 링크 저장
-                                when (phase) {
-                                    1 -> {
-                                        imgTopLink = respString ?: ""
-                                        prefs.edit().putString("img_top", imgTopLink).apply()
-                                    }
-                                    2 -> {
-                                        imgBottomLink = respString ?: ""
-                                        prefs.edit().putString("img_bottom", imgBottomLink).apply()
-                                    }
-                                    3 -> {
-                                        imgEtcLink = respString ?: ""
-                                        prefs.edit().putString("img_etc", imgEtcLink).apply()
-                                    }
-                                }
-                                withContext(Dispatchers.Main) { goNext() }
-                            } else {
-                                Log.e("ImageUpload", "업로드 실패: ${response.errorBody()?.string()}")
+                        when (phase) {
+                            1 -> uploadImage(part) { newUrl ->
+                                imgTopLink = newUrl
+                                prefs.edit().putString("img_top", imgTopLink).apply()
+                                goNext()
                             }
-                        } catch (e: Exception) {
-                            Log.e("ImageUpload", "업로드 예외", e)
+                            2 -> uploadImage(part) { newUrl ->
+                                imgBottomLink = newUrl
+                                prefs.edit().putString("img_bottom", imgBottomLink).apply()
+                                goNext()
+                            }
+                            3 -> uploadImage(part) { newUrl ->
+                                imgEtcLink = newUrl
+                                prefs.edit().putString("img_etc", imgEtcLink).apply()
+                                goNext()
+                            }
                         }
                     }
                 } else {
@@ -350,7 +361,7 @@ fun LoadingPage(
             when (phase) {
                 1 -> "ProgressPage/2"
                 2 -> "ProgressPage/3"
-                else -> "CalendarPage"
+                else -> "MainPage"
             }
         )
     }

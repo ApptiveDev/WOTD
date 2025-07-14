@@ -32,7 +32,8 @@ import com.apptive.wotd.R
 import com.apptive.wotd.ui.theme.pretendard
 
 @Composable
-fun TodayMoodCard() {
+fun TodayMoodCard(scoreFeel: Double?) {
+    val level = scoreFeel?.toInt()?.coerceIn(1, 5) ?: 0
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
         horizontalAlignment = Alignment.Start,
@@ -55,7 +56,7 @@ fun TodayMoodCard() {
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
-            FrogMood(2)
+            FrogMood(level)
 
             TextButton(
                 onClick = { },
@@ -111,7 +112,5 @@ fun FrogMood(level: Int) {
 @Preview
 @Composable
 fun TodayMoodCardPreview() {
-    TodayMoodCard()
+    TodayMoodCard(scoreFeel = 3.0)
 }
-
-// 무드리포트 미작성시 안뜨게 해야함

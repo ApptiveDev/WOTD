@@ -6,11 +6,18 @@ import retrofit2.Response
 import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
+import retrofit2.http.DELETE
+import retrofit2.http.Query
 
 interface ImageApi {
     @Multipart
     @POST("images/upload")
     suspend fun uploadImage(
         @Part image: MultipartBody.Part
+    ): Response<ResponseBody>
+
+    @DELETE("images/delete")
+    suspend fun deleteImage(
+        @Query("imageUrl") imageUrl: String
     ): Response<ResponseBody>
 } 

@@ -19,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -54,19 +55,51 @@ import java.time.LocalDate
 import java.time.YearMonth
 import androidx.compose.ui.platform.LocalContext
 import com.apptive.wotd.model.moodreport.MoodReportViewModel
+import android.widget.Toast
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.compose.runtime.collectAsState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalendarPage(
-    navController: NavController
+    navController: NavController,
+    mainViewModel: com.apptive.wotd.view.main.MainViewModel
 ) {
     val context = LocalContext.current
     val prefs = context.getSharedPreferences("image_links", Context.MODE_PRIVATE)
     var selectedDate by remember { mutableStateOf<LocalDate?>(LocalDate.now()) }
+    var selectedMoodReportId by remember { mutableStateOf<Long?>(null) }
     val scrollState = rememberScrollState()
     val moodReportViewModel: MoodReportViewModel = hiltViewModel()
     val allReports = moodReportViewModel.allReportsState.value
     val token = com.apptive.wotd.model.auth.TokenManager.getAccessToken(context)?.trim()
+
+    val selectedTab by mainViewModel.selectedTab.collectAsState()
+    LaunchedEffect(selectedTab) {
+        if (selectedTab == com.apptive.wotd.composable.BottomTab.Calendar && !token.isNullOrBlank()) {
+            moodReportViewModel.getAllMoodReports(token)
+        }
+    }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner, token, selectedDate) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME && !token.isNullOrBlank()) {
+                moodReportViewModel.getAllMoodReports(token)
+                val report = allReports?.find { it.moodReport?.date == selectedDate?.toString() }
+                val id = report?.moodReport?.id
+                if (id != null) {
+                    moodReportViewModel.getMoodReport(token, id)
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 
     LaunchedEffect(token) {
         if (!token.isNullOrBlank()) {
@@ -76,6 +109,33 @@ fun CalendarPage(
     LaunchedEffect(allReports) {
         if (allReports != null) {
             Log.d("CalendarPage", "전체 무드리포트 조회 결과: $allReports")
+        }
+    }
+    LaunchedEffect(allReports, selectedDate) {
+        val report = allReports?.find { it.moodReport?.date == selectedDate?.toString() }
+        selectedMoodReportId = report?.moodReport?.id
+    }
+    LaunchedEffect(selectedMoodReportId, token) {
+        if (selectedMoodReportId != null && !token.isNullOrBlank()) {
+            Log.d("SingleReportDebug", "단일조회 호출: id=$selectedMoodReportId")
+            moodReportViewModel.getMoodReport(token, selectedMoodReportId!!)
+        }
+    }
+    LaunchedEffect(moodReportViewModel.singleReportState.value) {
+        if (moodReportViewModel.singleReportState.value != null) {
+            Log.d("SingleReportDebug", "단일조회 결과: ${moodReportViewModel.singleReportState.value?.moodReport}")
+        }
+    }
+    val addState = moodReportViewModel.addState
+    LaunchedEffect(addState.value) {
+        addState.value?.let { state ->
+            if (state.isSuccess) {
+                Toast.makeText(context, "무드리포트가 삭제되었습니다.", Toast.LENGTH_SHORT).show()
+                moodReportViewModel.clearState()
+                if (!token.isNullOrBlank()) {
+                    moodReportViewModel.getAllMoodReports(token)
+                }
+            }
         }
     }
 //    LaunchedEffect(Unit) {
@@ -88,6 +148,18 @@ fun CalendarPage(
     val hasReportForSelectedDate = reportForSelectedDate != null
     val isScoreFeelZero = reportForSelectedDate?.moodReport?.score_feel == 0.0
     val singleReport = moodReportViewModel.singleReportState.value
+    var imgTop by remember { mutableStateOf<String?>(null) }
+    var imgBottom by remember { mutableStateOf<String?>(null) }
+    var imgEtc by remember { mutableStateOf<String?>(null) }
+    if (isScoreFeelZero) {
+        imgTop = singleReport?.moodReport?.img_top
+        imgBottom = singleReport?.moodReport?.img_bottom
+        imgEtc = singleReport?.moodReport?.img_etc
+    } else {
+        imgTop = reportForSelectedDate?.moodReport?.img_top
+        imgBottom = reportForSelectedDate?.moodReport?.img_bottom
+        imgEtc = reportForSelectedDate?.moodReport?.img_etc
+    }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -102,6 +174,14 @@ fun CalendarPage(
                 Log.d("CalendarPage", "날짜 선택됨: $it")
                 selectedDate = it
                 prefs.edit().putString("selected_date", it.toString()).apply()
+            },
+            onDateLongPressed = { date ->
+                val report = allReports?.find { it.moodReport?.date == date.toString() }
+                if (report?.moodReport?.id != null && !token.isNullOrBlank()) {
+                    moodReportViewModel.deleteMoodReport(token, report.moodReport.id!!)
+                } else {
+                    Toast.makeText(context, "해당 날짜에 무드리포트가 없습니다.", Toast.LENGTH_SHORT).show()
+                }
             }
         )
         HeightSpacer(28.dp)
@@ -130,33 +210,36 @@ fun CalendarPage(
             CameraBtn { navController.navigate("ProgressPage/1") }
             HeightSpacer(8.dp)
         } else if (isScoreFeelZero) {
-            // 단건 무드리포트 조회 API 호출
-            LaunchedEffect(reportForSelectedDate?.moodReport?.id) {
-                val id = reportForSelectedDate?.moodReport?.id
-                if (!token.isNullOrBlank() && id != null) {
-                    moodReportViewModel.getMoodReport(token, id)
-                }
-            }
-            LaunchedEffect(singleReport) {
-                if (singleReport != null) {
-                    Log.d("단건 무드리포트 조회", singleReport.toString())
-                }
-            }
-            val moodReportData = singleReport?.data as? Map<*, *>
-            val imgTop = moodReportData?.get("img_top") as? String
-            val imgBottom = moodReportData?.get("img_bottom") as? String
-            val imgEtc = moodReportData?.get("img_etc") as? String
             CameraBtn { navController.navigate("ProgressPage/1") }
             HeightSpacer(8.dp)
-            MoodReportBtn(navController)
+            MoodReportBtn(navController, selectedMoodReportId)
             HeightSpacer(8.dp)
-            OutfitGrid(imgTop = imgTop, imgBottom = imgBottom, imgEtc = imgEtc)
+            LaunchedEffect(singleReport) {
+                if (singleReport?.moodReport != null) {
+                    imgTop = singleReport.moodReport.img_top
+                    imgBottom = singleReport.moodReport.img_bottom
+                    imgEtc = singleReport.moodReport.img_etc
+                }
+            }
+            if (singleReport?.moodReport != null) {
+                Log.d("OutfitGridDebug", "imgTop=$imgTop, imgBottom=$imgBottom, imgEtc=$imgEtc")
+                OutfitGrid(imgTop = imgTop, imgBottom = imgBottom, imgEtc = imgEtc)
+            } else {
+                Text("이미지 정보를 불러오는 중입니다...")
+            }
         } else {
-            MoodReportBtn(navController)
-            HeightSpacer(16.dp)
-            TodayMoodCard()
+            CameraBtn { navController.navigate("ProgressPage/1") }
             HeightSpacer(8.dp)
-            OutfitGrid()
+            MoodReportBtn(navController, selectedMoodReportId)
+            HeightSpacer(16.dp)
+            val scoreFeel = reportForSelectedDate?.moodReport?.score_feel
+            TodayMoodCard(scoreFeel = scoreFeel)
+            HeightSpacer(8.dp)
+            val imgTop = reportForSelectedDate?.moodReport?.img_top
+            val imgBottom = reportForSelectedDate?.moodReport?.img_bottom
+            val imgEtc = reportForSelectedDate?.moodReport?.img_etc
+            Log.d("OutfitGridDebug", "imgTop=$imgTop, imgBottom=$imgBottom, imgEtc=$imgEtc")
+            OutfitGrid(imgTop = imgTop, imgBottom = imgBottom, imgEtc = imgEtc)
         }
     }
 }

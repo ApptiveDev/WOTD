@@ -158,12 +158,14 @@ fun CameraBtn(
 }
 
 @Composable
-fun MoodReportBtn(navController: NavController) {
+fun MoodReportBtn(navController: NavController, moodReportId: Long?) {
     val context = LocalContext.current
 
     OutlinedButton (
         onClick = {
-            navController.navigate("MoodReportPage")
+            if (moodReportId != null) {
+                navController.navigate("MoodReportPage/$moodReportId")
+            }
         },
         shape = RoundedCornerShape(4.dp),
         colors = ButtonDefaults.buttonColors(
