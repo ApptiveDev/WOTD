@@ -15,15 +15,14 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class StylingService {
 
-    public StylingSuggestionResponseDTO StylingSuggestion(List<MoodReport> moodReports) {
+    public StylingSuggestionResponseDTO StylingSuggestion(List<MoodReport> moodReports, Double temp) {
 
         // 추천할 코디가 하나도 없는 경우
         if (moodReports == null || moodReports.isEmpty()) {
             return new StylingSuggestionResponseDTO(MESSAGE_NO_CODI, 0, Collections.emptyList());
         }
 
-        Double tempFeelsLike = moodReports.isEmpty() ? null : moodReports.get(0).getScore_feel();
-        String baseMessage = getStyleRecommendation(tempFeelsLike);
+        String baseMessage = getStyleRecommendation(temp);
 
         // 유효한 이미지가 있는 무드리포트만 필터링
         List<StylingSuggestionDTO> validSuggestions = moodReports.stream()

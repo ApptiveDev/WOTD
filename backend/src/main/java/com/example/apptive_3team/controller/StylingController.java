@@ -54,7 +54,7 @@ public class StylingController {
                     moodReportService.getMoodReportsByWeatherIdsAndUserId(filteredWeatherIds, userId);
             log.debug("🎯 조건에 부합하는 무드리포트 {}개 추출 완료", filteredMoodReports.size());
 
-            StylingSuggestionResponseDTO data = stylingService.StylingSuggestion(filteredMoodReports);
+            StylingSuggestionResponseDTO data = stylingService.StylingSuggestion(filteredMoodReports, request.temp_feels_like());
             log.info("✅ 코디 추천 성공 - 추천 결과 생성됨");
 
             return ResponseEntity.ok(ApiResponse.success("코디 추천을 완료했습니다.", data));
