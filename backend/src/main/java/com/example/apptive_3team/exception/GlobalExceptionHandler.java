@@ -2,6 +2,7 @@ package com.example.apptive_3team.exception;
 
 import com.example.apptive_3team.exception.Item.ItemNotFoundException;
 import com.example.apptive_3team.exception.KakaoLogin.InvalidKakaoAccessTokenException;
+import com.example.apptive_3team.exception.KakaoLogin.JwtValidationException;
 import com.example.apptive_3team.exception.MoodReport.MoodReportNotFoundException;
 import com.example.apptive_3team.exception.WeatherData.GetWeatherApiException;
 import com.example.apptive_3team.exception.WeatherData.NotSupportedLocationException;
@@ -208,4 +209,20 @@ public class GlobalExceptionHandler {
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(ApiResponse.error("예상치 못한 오류가 발생했습니다.", "INTERNAL_ERROR"));
     }
+
+    @ExceptionHandler(JwtValidationException.class)
+    public ResponseEntity<ApiResponse<?>> handleJwtValidation(JwtValidationException ex, HttpServletRequest request) {
+        log.error("❗ [Global] [{} {}] 인증 실패 - URI: {}, 에러: {}",
+                request.getMethod(),
+                request.getRequestURI(),
+                ex.getClass().getSimpleName(),
+                ex.getMessage(),
+                ex
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error("인증 실패 : ", ex.getMessage()));
+    }
+
 }
