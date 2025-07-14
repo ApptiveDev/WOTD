@@ -48,6 +48,12 @@ public class JwtUtil {
 
     // 토큰에서 userId 추출
     public String getUserIdFromToken(String token) {
+
+        // ✅ Bearer 접두사 제거
+        if (token != null && token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
+
         return Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
