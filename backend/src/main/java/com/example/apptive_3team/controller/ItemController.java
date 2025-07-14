@@ -92,7 +92,7 @@ public class ItemController {
      */
     @PostMapping("/update")
     public ResponseEntity<?> updateItem(@RequestHeader("Authorization") String token,
-                                        @Valid @RequestBody ItemRequestDTO request) {
+                                        @RequestBody ItemRequestDTO request) {
         log.info("📥 [POST] /item/update API 호출됨");
 
         Long user_id = kakaoService.getUserIdFromJwtToken(token);

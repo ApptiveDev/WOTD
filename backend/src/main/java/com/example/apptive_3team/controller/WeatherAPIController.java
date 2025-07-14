@@ -4,6 +4,7 @@ import com.example.apptive_3team.ApiResponse;
 import com.example.apptive_3team.dto.WeatherDataDTO;
 import com.example.apptive_3team.dto.WeatherRequestDTO;
 import com.example.apptive_3team.service.WeatherApiService;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +18,7 @@ public class WeatherAPIController {
     private WeatherApiService weatherApiService;
 
     @PostMapping
-    public ResponseEntity<?> getWeather(@RequestBody WeatherRequestDTO request) {
+    public ResponseEntity<?> getWeather(@Valid @RequestBody WeatherRequestDTO request) {
         log.info("📥 [POST] weather/request API 호출됨");
         
         WeatherDataDTO data = weatherApiService.getWeatherData(request.date(), request.latitude(), request.longitude());
