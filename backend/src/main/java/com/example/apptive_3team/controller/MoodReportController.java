@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -62,12 +63,14 @@ public class MoodReportController {
 
         List<MoodReport> moodReports = moodReportService.getMoodReportsByUserId(user_id);
 
+        List<MoodReportResponseDTO> data = new ArrayList<>();
+
         if (moodReports.isEmpty()) {
             return ResponseEntity.ok(
-                    ApiResponse.success("무드 리포트 조회를 완료했습니다.", "등록된 무드 리포트가 없습니다."));
+                    ApiResponse.success("무드 리포트 조회를 완료했습니다.", data));
         }
 
-        List<MoodReportResponseDTO> data = moodReports.stream()
+        data = moodReports.stream()
                 .map(moodReport -> {
                     WeatherDataDTO weatherData = weatherApiService.getWeatherDataById(moodReport.getWeatherId());
                     return new MoodReportResponseDTO(weatherData, moodReport);
