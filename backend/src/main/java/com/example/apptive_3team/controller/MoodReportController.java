@@ -62,6 +62,11 @@ public class MoodReportController {
 
         List<MoodReport> moodReports = moodReportService.getMoodReportsByUserId(user_id);
 
+        if (moodReports.isEmpty()) {
+            return ResponseEntity.ok(
+                    ApiResponse.success("무드 리포트 조회를 완료했습니다.", "등록된 무드 리포트가 없습니다."));
+        }
+
         List<MoodReportResponseDTO> data = moodReports.stream()
                 .map(moodReport -> {
                     WeatherDataDTO weatherData = weatherApiService.getWeatherDataById(moodReport.getWeatherId());
@@ -97,7 +102,7 @@ public class MoodReportController {
      */
     @PostMapping("/update")
     public ResponseEntity<?> updateMoodReport(@RequestHeader("Authorization") String token,
-                                        @Valid @RequestBody MoodReportRequestDTO request) {
+                                              @RequestBody MoodReportRequestDTO request) {
         log.info("📥 [POST] moodReport/update API 호출됨");
 
         Long user_id = kakaoService.getUserIdFromJwtToken(token);
