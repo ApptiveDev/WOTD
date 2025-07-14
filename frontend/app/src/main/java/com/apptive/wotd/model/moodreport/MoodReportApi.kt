@@ -5,6 +5,8 @@ import retrofit2.http.Body
 import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.GET
+import retrofit2.http.DELETE
+import retrofit2.http.Path
 
 data class MoodReportRequestDTO(
     val date: String = "",
@@ -16,13 +18,12 @@ data class MoodReportRequestDTO(
     val img_etc: String = "",
     val content: String = "",
     val score_feel: Double = 0.0,
-    val score_icon: Int? = null
 )
 
 data class MoodReportResponse(
     val isSuccess: Boolean,
     val message: String,
-    val data: Any? = null
+    val data: MoodReportItem? = null
 )
 
 data class MoodReportListResponse(
@@ -64,9 +65,16 @@ data class MoodReport(
 )
 
 data class MoodReportUpdateRequest(
-    val id: Long,
-    val content: String,
-    val score_feel: Double
+    val id: Long?,
+    val date: String?,
+    val created_at: String?,
+    val latitude: Double?,
+    val longitude: Double?,
+    val img_top: String?,
+    val img_bottom: String?,
+    val img_etc: String?,
+    val content: String?,
+    val score_feel: Double?
 )
 
 interface MoodReportApi {
@@ -91,5 +99,11 @@ interface MoodReportApi {
     suspend fun updateMoodReport(
         @Header("Authorization") token: String,
         @Body request: MoodReportUpdateRequest
+    ): Response<MoodReportResponse>
+
+    @DELETE("moodReport/delete/{moodReportId}")
+    suspend fun deleteMoodReport(
+        @Header("Authorization") token: String,
+        @Path("moodReportId") moodReportId: Long
     ): Response<MoodReportResponse>
 } 

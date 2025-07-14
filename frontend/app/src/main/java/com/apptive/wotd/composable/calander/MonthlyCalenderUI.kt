@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -66,7 +67,8 @@ import java.util.Locale
 @Composable
 fun CalendarView(
     selectedDate: LocalDate? = null,
-    onDateSelected: (LocalDate) -> Unit
+    onDateSelected: (LocalDate) -> Unit,
+    onDateLongPressed: ((LocalDate) -> Unit)? = null
 ) {
     var displayedMonth by remember { mutableStateOf(YearMonth.now()) }
 
@@ -217,8 +219,15 @@ fun CalendarView(
                                 color = backgroundColor,
                                 shape = RoundedCornerShape(16.dp)
                             )
-                            .noRippleClickable {
-                                onDateSelected(day.date)
+                            .pointerInput(day.date) {
+                                detectTapGestures(
+                                    onLongPress = {
+                                        onDateLongPressed?.invoke(day.date)
+                                    },
+                                    onTap = {
+                                        onDateSelected(day.date)
+                                    }
+                                )
                             },
                         contentAlignment = Alignment.Center
                     ) {

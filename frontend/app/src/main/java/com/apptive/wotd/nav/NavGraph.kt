@@ -13,29 +13,41 @@ import com.apptive.wotd.view.login.LoginPage
 import com.apptive.wotd.view.main.LoadingPage
 import com.apptive.wotd.view.main.ProgressPage
 import com.apptive.wotd.view.moodreport.MoodReportPage
+import com.apptive.wotd.view.main.MainViewModel
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun NavGraph(startPage: String){
     val navController = rememberNavController()
     val signUpViewModel: SignUpViewModel = hiltViewModel()
+    val mainViewModel: MainViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
     NavHost(
         navController = navController,
         startDestination = startPage
     ) {
         composable("MainPage"){
-            MainPage(navController)
+            MainPage(navController, mainViewModel)
         }
         composable("LoginPage"){
             LoginPage(navController, signUpViewModel)
         }
         composable("CalendarPage"){
-            CalendarPage(navController)
+            CalendarPage(navController, mainViewModel)
         }
         composable("HomePage"){
             HomePage()
         }
-        composable("MoodReportPage"){
-            MoodReportPage()
+        composable("MoodReportPage/{moodReportId}") { backStackEntry ->
+            val moodReportId = backStackEntry.arguments?.getString("moodReportId")?.toLongOrNull() ?: 0L
+            val viewModel: com.apptive.wotd.model.moodreport.MoodReportViewModel = hiltViewModel()
+            val singleReport = viewModel.singleReportState.value
+            val origin = singleReport?.moodReport
+            com.apptive.wotd.view.moodreport.MoodReportPage(
+                moodReportId = moodReportId,
+                origin = origin,
+                mainViewModel = mainViewModel,
+                navController = navController
+            )
         }
         composable("ProgressPage/{phase}") { backStackEntry ->
             val phase = backStackEntry.arguments?.getString("phase") ?: ""

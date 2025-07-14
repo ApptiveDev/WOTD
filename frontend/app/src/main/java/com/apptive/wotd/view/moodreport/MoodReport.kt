@@ -42,13 +42,76 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.layout.Box
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.apptive.wotd.model.moodreport.MoodReportViewModel
+import com.apptive.wotd.model.moodreport.MoodReportUpdateRequest
+import com.apptive.wotd.model.auth.TokenManager
+import androidx.navigation.NavController
+import android.widget.Toast
+import com.apptive.wotd.view.main.MainViewModel
 
 @Composable
-fun MoodReportPage() {
-    var selected by remember { mutableStateOf(0) } // 만족도
-    var reviewText by remember { mutableStateOf("") } // 총평
+fun MoodReportPage(
+    moodReportId: Long,
+    origin: com.apptive.wotd.model.moodreport.MoodReport?,
+    mainViewModel: MainViewModel, // mainViewModel을 명확히 받음
+    navController: NavController? = null
+) {
+    val context = LocalContext.current
+    val token = TokenManager.getAccessToken(context)?.trim()
+    val viewModel: MoodReportViewModel = hiltViewModel()
+    val addState = viewModel.addState
+    val singleReportState = viewModel.singleReportState.value
+
+    var step by remember { mutableStateOf(1) }
+
+    LaunchedEffect(origin, token, moodReportId) {
+        if (origin == null && !token.isNullOrBlank() && moodReportId != 0L) {
+            viewModel.getMoodReport(token, moodReportId)
+        }
+    }
+
+    val actualOrigin = origin ?: singleReportState?.moodReport
+
+    if (actualOrigin == null) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text("무드리포트 정보를 불러오는 중입니다...")
+        }
+        return
+    }
+
+    var selected by remember { mutableStateOf(actualOrigin.score_feel?.toInt() ?: 0) } // 만족도
+    var reviewText by remember { mutableStateOf(actualOrigin.content ?: "") } // 총평
     val reviewLength = reviewText.length
     val isAllFilled = selected != 0 && reviewText.isNotBlank() && reviewLength <= 500
+
+    if (step == 2) {
+        LaunchedEffect(Unit) {
+            mainViewModel.setTab(com.apptive.wotd.composable.BottomTab.Calendar)
+            navController?.navigate("MainPage") {
+                popUpTo("MainPage") { inclusive = true }
+                launchSingleTop = true
+            }
+        }
+        return
+    }
+
+    LaunchedEffect(addState.value) {
+        addState.value?.let { state ->
+            if (state.isSuccess) {
+                Toast.makeText(context, "무드리포트가 수정되었습니다.", Toast.LENGTH_SHORT).show()
+                viewModel.clearState()
+                step = 2
+            }
+        }
+    }
+
     Column (
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -56,7 +119,11 @@ fun MoodReportPage() {
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp, vertical = 60.dp)
     ) {
-        OutfitGrid()
+        OutfitGrid(
+            imgTop = actualOrigin.img_top,
+            imgBottom = actualOrigin.img_bottom,
+            imgEtc = actualOrigin.img_etc
+        )
         SatisfactionEdit(selected = selected, onSelect = { selected = it })
         HeightSpacer(25.dp)
         OverallReview(
@@ -69,7 +136,25 @@ fun MoodReportPage() {
         HeightSpacer(25.dp)
         EditConfirmBtn(
             enabled = isAllFilled,
-            onClick = { /* TODO: 완료 동작 */ }
+            onClick = {
+                if (!token.isNullOrBlank() && actualOrigin != null) {
+                    viewModel.updateMoodReport(
+                        token,
+                        MoodReportUpdateRequest(
+                            id = actualOrigin.id,
+                            date = actualOrigin.date,
+                            created_at = actualOrigin.created_at,
+                            latitude = actualOrigin.latitude,
+                            longitude = actualOrigin.longitude,
+                            img_top = actualOrigin.img_top,
+                            img_bottom = actualOrigin.img_bottom,
+                            img_etc = actualOrigin.img_etc,
+                            content = reviewText,
+                            score_feel = selected.toDouble()
+                        )
+                    )
+                }
+            }
         )
     }
 }
@@ -242,5 +327,5 @@ fun EditConfirmBtn(enabled: Boolean, onClick: () -> Unit) {
 @Preview
 @Composable
 fun MoodReportPagePreview() {
-    MoodReportPage()
+//    MoodReportPage(moodReportId = 1L, origin = null)
 }

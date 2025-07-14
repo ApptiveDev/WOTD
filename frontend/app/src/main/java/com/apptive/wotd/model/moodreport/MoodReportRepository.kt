@@ -8,7 +8,7 @@ class MoodReportRepository @Inject constructor(
 ) {
     suspend fun addMoodReport(token: String, request: MoodReportRequestDTO): MoodReportResponse? {
         return try {
-            val response = moodReportApi.addMoodReport("$token", request)
+            val response = moodReportApi.addMoodReport("Bearer $token", request)
             if (response.isSuccessful) {
                 response.body()
             } else {
@@ -23,7 +23,7 @@ class MoodReportRepository @Inject constructor(
 
     suspend fun getAllMoodReports(token: String): MoodReportListResponse? {
         return try {
-            val response = moodReportApi.getAllMoodReports("$token")
+            val response = moodReportApi.getAllMoodReports("Bearer $token")
             if (response.isSuccessful) {
                 response.body()
             } else {
@@ -38,7 +38,7 @@ class MoodReportRepository @Inject constructor(
 
     suspend fun getMoodReport(token: String, moodReportId: Long): MoodReportResponse? {
         return try {
-            val response = moodReportApi.getMoodReport("$token", moodReportId)
+            val response = moodReportApi.getMoodReport("Bearer $token", moodReportId)
             if (response.isSuccessful) {
                 response.body()
             } else {
@@ -53,7 +53,7 @@ class MoodReportRepository @Inject constructor(
 
     suspend fun updateMoodReport(token: String, request: MoodReportUpdateRequest): MoodReportResponse? {
         return try {
-            val response = moodReportApi.updateMoodReport("$token", request)
+            val response = moodReportApi.updateMoodReport("Bearer $token", request)
             if (response.isSuccessful) {
                 response.body()
             } else {
@@ -62,6 +62,21 @@ class MoodReportRepository @Inject constructor(
             }
         } catch (e: Exception) {
             Log.e("MoodReportRepo", "무드리포트 수정 예외", e)
+            null
+        }
+    }
+
+    suspend fun deleteMoodReport(token: String, moodReportId: Long): MoodReportResponse? {
+        return try {
+            val response = moodReportApi.deleteMoodReport("Bearer $token", moodReportId)
+            if (response.isSuccessful) {
+                response.body()
+            } else {
+                Log.e("MoodReportRepo", "무드리포트 삭제 실패: ${response.errorBody()?.string()}")
+                null
+            }
+        } catch (e: Exception) {
+            Log.e("MoodReportRepo", "무드리포트 삭제 예외", e)
             null
         }
     }
