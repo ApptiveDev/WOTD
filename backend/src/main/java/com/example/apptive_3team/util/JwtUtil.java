@@ -1,5 +1,7 @@
 package com.example.apptive_3team.util;
 
+import com.example.apptive_3team.exception.ErrorCode;
+import com.example.apptive_3team.exception.KakaoLogin.JwtValidationException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -9,7 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
-import java.security.SignatureException;
+import io.jsonwebtoken.security.SignatureException;
 import java.util.Base64;
 import java.util.Date;
 
@@ -54,13 +56,13 @@ public class JwtUtil {
         }
         // ✅ 유효성 검사
         catch (ExpiredJwtException e) {
-            throw new JwtValidationException("JWT가 만료되었습니다.", e);
+            throw new JwtValidationException(ErrorCode.JWT_EXPIRED_ERROR, e);
         } catch (MalformedJwtException e) {
-            throw new JwtValidationException("JWT 형식이 잘못되었습니다.", e);
+            throw new JwtValidationException(ErrorCode.JWT_MALFORMED_ERROR, e);
         } catch (SignatureException e) {
-            throw new JwtValidationException("JWT 서명이 유효하지 않습니다.", e);
+            throw new JwtValidationException(ErrorCode.JWT_SIGNATURE_INVALID_ERROR, e);
         } catch (Exception e) {
-            throw new JwtValidationException("JWT 파싱 중 알 수 없는 오류가 발생했습니다.", e);
+            throw new JwtValidationException(ErrorCode.JWT_VALIDATION_ERROR, e);
         }
     }
 }
