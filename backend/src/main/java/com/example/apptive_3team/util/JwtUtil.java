@@ -1,11 +1,15 @@
 package com.example.apptive_3team.util;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
+import java.security.SignatureException;
 import java.util.Base64;
 import java.util.Date;
 
@@ -31,22 +35,7 @@ public class JwtUtil {
                 .compact();
     }
 
-    // 토큰 유효성 검사
-    public boolean validateToken(String token) {
-        try {
-            Jwts.parserBuilder()
-                    .setSigningKey(key)
-                    .build()
-                    .parseClaimsJws(token);
-
-            return true;
-        } catch (Exception e) {
-            System.out.println("JWT 검증 실패: " + e.getMessage());
-            return false;
-        }
-    }
-
-    // 토큰에서 userId 추출
+    // JWT 유효성 검사 후 파싱하여 user_id 추출 과정
     public String getUserIdFromToken(String token) {
 
         // ✅ Bearer 접두사 제거
@@ -54,13 +43,24 @@ public class JwtUtil {
             token = token.substring(7);
         }
 
-        return Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .get("userId", String.class);
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+
+            return claims.get("userId", String.class);
+        }
+        // ✅ 유효성 검사
+        catch (ExpiredJwtException e) {
+            throw new JwtValidationException("JWT가 만료되었습니다.", e);
+        } catch (MalformedJwtException e) {
+            throw new JwtValidationException("JWT 형식이 잘못되었습니다.", e);
+        } catch (SignatureException e) {
+            throw new JwtValidationException("JWT 서명이 유효하지 않습니다.", e);
+        } catch (Exception e) {
+            throw new JwtValidationException("JWT 파싱 중 알 수 없는 오류가 발생했습니다.", e);
+        }
     }
-
-
 }
