@@ -68,13 +68,7 @@ public class MoodReportService {
      * @param userId 사용자 ID
      */
     public List<MoodReport> getMoodReportsByUserId(Long userId) {
-        List<MoodReport> reports = moodReportRepository.findByUserId(userId);
-
-        if (reports.isEmpty()) {
-            throw new MoodReportNotFoundException();
-        }
-
-        return reports;
+        return moodReportRepository.findByUserId(userId);
     }
 
     /**
