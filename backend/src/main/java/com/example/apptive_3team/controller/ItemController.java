@@ -34,7 +34,7 @@ public class ItemController {
     public ResponseEntity<?> getItem(@PathVariable Long itemId) {
         log.info("📥 [GET] item/request/{itemId} API 호출됨");
 
-        Optional<ItemRequestDTO> data = itemService.getItemById(itemId);
+        ItemRequestDTO data = itemService.getItemById(itemId);
         return ResponseEntity.ok(ApiResponse.success("챙길 물품 조회를 완료했습니다.", data));
     }
 

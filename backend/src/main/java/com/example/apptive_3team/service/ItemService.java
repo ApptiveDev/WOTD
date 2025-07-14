@@ -107,16 +107,13 @@ public class ItemService {
      *
      * @return 챙길 물품 DTO를 Optional로 감싼 형태로 반환
      */
-    public Optional<ItemRequestDTO> getItemById(Long id) {
-
-        validateItemIsExist(id);
-
+    public ItemRequestDTO getItemById(Long id) {
         return itemRepository.findById(id)
                 .map(item -> new ItemRequestDTO(
                         item.getId(),
                         item.getName(),
                         item.getDeadline()
-                ));
+                )).orElseThrow(ItemNotFoundException::new);
     }
 
     /**
