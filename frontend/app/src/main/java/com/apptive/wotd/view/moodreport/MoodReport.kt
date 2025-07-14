@@ -41,12 +41,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.layout.Box
 
 @Composable
 fun MoodReportPage() {
     var selected by remember { mutableStateOf(0) } // 만족도
     var reviewText by remember { mutableStateOf("") } // 총평
-    val isAllFilled = selected != 0 && reviewText.isNotBlank()
+    val reviewLength = reviewText.length
+    val isAllFilled = selected != 0 && reviewText.isNotBlank() && reviewLength <= 500
     Column (
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -57,7 +59,13 @@ fun MoodReportPage() {
         OutfitGrid()
         SatisfactionEdit(selected = selected, onSelect = { selected = it })
         HeightSpacer(25.dp)
-        OverallReview(reviewText = reviewText, onReviewChange = { reviewText = it })
+        OverallReview(
+            reviewText = reviewText,
+            onReviewChange = {
+                if (it.length <= 500) reviewText = it
+            },
+            reviewLength = reviewLength
+        )
         HeightSpacer(25.dp)
         EditConfirmBtn(
             enabled = isAllFilled,
@@ -135,7 +143,7 @@ fun SatisfactionEdit(selected: Int, onSelect: (Int) -> Unit) {
 }
 
 @Composable
-fun OverallReview(reviewText: String, onReviewChange: (String) -> Unit) {
+fun OverallReview(reviewText: String, onReviewChange: (String) -> Unit, reviewLength: Int) {
     Column (
         modifier = Modifier
             .fillMaxWidth()
@@ -150,34 +158,47 @@ fun OverallReview(reviewText: String, onReviewChange: (String) -> Unit) {
             )
         )
         HeightSpacer(8.dp)
-        BasicTextField(
-            value = reviewText,
-            onValueChange = onReviewChange,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(159.dp)
-                .background(Color(0xFFF5F5F5), RoundedCornerShape(12.dp))
-                .padding(16.dp),
-            textStyle = TextStyle(
-                fontSize = 14.sp,
-                fontFamily = pretendard,
-                color = Color.Black
-            ),
-            decorationBox = { innerTextField ->
-                if (reviewText.isEmpty()) {
-                    Text(
-                        text = "어떤 내용이든 좋아요!",
-                        style = TextStyle(
-                            fontSize = 12.sp,
-                            fontFamily = pretendard,
-                            fontWeight = FontWeight(400),
-                            color = Color(0xFF93979D)
+        Box(modifier = Modifier.fillMaxWidth()) {
+            BasicTextField(
+                value = reviewText,
+                onValueChange = onReviewChange,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(159.dp)
+                    .background(Color(0xFFF5F5F5), RoundedCornerShape(12.dp))
+                    .padding(16.dp),
+                textStyle = TextStyle(
+                    fontSize = 14.sp,
+                    fontFamily = pretendard,
+                    color = Color.Black
+                ),
+                decorationBox = { innerTextField ->
+                    if (reviewText.isEmpty()) {
+                        Text(
+                            text = "어떤 내용이든 좋아요!",
+                            style = TextStyle(
+                                fontSize = 12.sp,
+                                fontFamily = pretendard,
+                                fontWeight = FontWeight(400),
+                                color = Color(0xFF93979D)
+                            )
                         )
-                    )
+                    }
+                    innerTextField()
                 }
-                innerTextField()
-            }
-        )
+            )
+            Text(
+                text = "$reviewLength/500",
+                style = TextStyle(
+                    fontSize = 12.sp,
+                    fontFamily = pretendard,
+                    color = if (reviewLength > 500) Color.Red else Color(0xFF93979D)
+                ),
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(8.dp)
+            )
+        }
     }
 }
 

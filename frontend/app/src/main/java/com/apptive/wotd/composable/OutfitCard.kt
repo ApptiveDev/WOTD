@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -30,9 +31,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.apptive.wotd.R
 import com.apptive.wotd.ui.theme.pretendard
+import coil.compose.rememberAsyncImagePainter
 
 @Composable
-fun OutfitGrid() {
+fun OutfitGrid(imgTop: String? = null, imgBottom: String? = null, imgEtc: String? = null) {
+    val items = listOf(
+        Triple("상의", imgTop, R.drawable.ic_frog_satisfied_4),
+        Triple("하의", imgBottom, R.drawable.ic_frog_satisfied_4),
+        Triple("기타", imgEtc, R.drawable.ic_frog_satisfied_4)
+    )
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = Modifier
@@ -43,8 +50,8 @@ fun OutfitGrid() {
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        items(outfitItems) { item ->
-            OutfitCard(item)
+        items(items) { (category, imageUrl, fallbackRes) ->
+            OutfitCard(category, imageUrl, fallbackRes)
         }
     }
 }
@@ -58,7 +65,7 @@ val outfitItems = listOf(
 )
 
 @Composable
-fun OutfitCard(item: OutfitItem) {
+fun OutfitCard(category: String, imageUrl: String?, fallbackRes: Int) {
     Box(
         modifier = Modifier
             .aspectRatio(1f)
@@ -77,7 +84,7 @@ fun OutfitCard(item: OutfitItem) {
                 .padding(horizontal = 8.dp, vertical = 4.dp)
         ) {
             Text(
-                text = item.category,
+                text = category,
                 style = TextStyle(
                     fontSize = 12.sp,
                     fontFamily = pretendard,
@@ -87,9 +94,14 @@ fun OutfitCard(item: OutfitItem) {
             )
         }
 
+        val painter: Painter = if (!imageUrl.isNullOrBlank()) {
+            rememberAsyncImagePainter(model = imageUrl)
+        } else {
+            painterResource(id = fallbackRes)
+        }
         Image(
-            painter = painterResource(id = item.imageRes),
-            contentDescription = item.category,
+            painter = painter,
+            contentDescription = category,
             contentScale = ContentScale.Fit,
             modifier = Modifier
                 .align(Alignment.Center)

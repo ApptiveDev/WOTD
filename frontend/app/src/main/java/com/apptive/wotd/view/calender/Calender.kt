@@ -1,5 +1,8 @@
 package com.apptive.wotd.view.calender
 
+import android.content.Context
+import android.content.SharedPreferences
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -49,17 +52,42 @@ import com.apptive.wotd.ui.theme.pretendard
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.YearMonth
+import androidx.compose.ui.platform.LocalContext
+import com.apptive.wotd.model.moodreport.MoodReportViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalendarPage(
     navController: NavController
 ) {
-    var selectedDate by remember { mutableStateOf<LocalDate?>(null) }
+    val context = LocalContext.current
+    val prefs = context.getSharedPreferences("image_links", Context.MODE_PRIVATE)
+    var selectedDate by remember { mutableStateOf<LocalDate?>(LocalDate.now()) }
     val scrollState = rememberScrollState()
+    val moodReportViewModel: MoodReportViewModel = hiltViewModel()
+    val allReports = moodReportViewModel.allReportsState.value
+    val token = com.apptive.wotd.model.auth.TokenManager.getAccessToken(context)?.trim()
+
+    LaunchedEffect(token) {
+        if (!token.isNullOrBlank()) {
+            moodReportViewModel.getAllMoodReports(token)
+        }
+    }
+    LaunchedEffect(allReports) {
+        if (allReports != null) {
+            Log.d("CalendarPage", "전체 무드리포트 조회 결과: $allReports")
+        }
+    }
 //    LaunchedEffect(Unit) {
 //        navController.navigate("ProgressPage/1")
 //    }
+    val selectedDateString = selectedDate?.toString()
+    val reportForSelectedDate = allReports?.find {
+        it.moodReport?.date == selectedDateString
+    }
+    val hasReportForSelectedDate = reportForSelectedDate != null
+    val isScoreFeelZero = reportForSelectedDate?.moodReport?.score_feel == 0.0
+    val singleReport = moodReportViewModel.singleReportState.value
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -71,7 +99,9 @@ fun CalendarPage(
         CalendarView(
             selectedDate = selectedDate,
             onDateSelected = {
+                Log.d("CalendarPage", "날짜 선택됨: $it")
                 selectedDate = it
+                prefs.edit().putString("selected_date", it.toString()).apply()
             }
         )
         HeightSpacer(28.dp)
@@ -94,15 +124,39 @@ fun CalendarPage(
             )
         }
         HeightSpacer(10.dp)
-        WeatherCard(viewModel = hiltViewModel())
+        WeatherCard(selectedDate = selectedDate, viewModel = hiltViewModel())
         HeightSpacer(8.dp)
-        CameraBtn( {} )
-        HeightSpacer(8.dp)
-        MoodReportBtn(navController)
-        HeightSpacer(16.dp)
-        TodayMoodCard()
-        HeightSpacer(8.dp)
-        OutfitGrid()
-
+        if (!hasReportForSelectedDate) {
+            CameraBtn { navController.navigate("ProgressPage/1") }
+            HeightSpacer(8.dp)
+        } else if (isScoreFeelZero) {
+            // 단건 무드리포트 조회 API 호출
+            LaunchedEffect(reportForSelectedDate?.moodReport?.id) {
+                val id = reportForSelectedDate?.moodReport?.id
+                if (!token.isNullOrBlank() && id != null) {
+                    moodReportViewModel.getMoodReport(token, id)
+                }
+            }
+            LaunchedEffect(singleReport) {
+                if (singleReport != null) {
+                    Log.d("단건 무드리포트 조회", singleReport.toString())
+                }
+            }
+            val moodReportData = singleReport?.data as? Map<*, *>
+            val imgTop = moodReportData?.get("img_top") as? String
+            val imgBottom = moodReportData?.get("img_bottom") as? String
+            val imgEtc = moodReportData?.get("img_etc") as? String
+            CameraBtn { navController.navigate("ProgressPage/1") }
+            HeightSpacer(8.dp)
+            MoodReportBtn(navController)
+            HeightSpacer(8.dp)
+            OutfitGrid(imgTop = imgTop, imgBottom = imgBottom, imgEtc = imgEtc)
+        } else {
+            MoodReportBtn(navController)
+            HeightSpacer(16.dp)
+            TodayMoodCard()
+            HeightSpacer(8.dp)
+            OutfitGrid()
+        }
     }
 }

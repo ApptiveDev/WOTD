@@ -12,7 +12,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,9 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -38,14 +35,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.apptive.wotd.R
 import com.apptive.wotd.ui.theme.pretendard
 import java.time.LocalDate
-import com.apptive.wotd.model.auth.WeatherViewModel
-import androidx.hilt.navigation.compose.hiltViewModel
+import com.apptive.wotd.model.weather.WeatherViewModel
 import com.apptive.wotd.composable.HeightSpacer
 import com.apptive.wotd.composable.WidthSpacer
 import com.apptive.wotd.ui.theme.primaryColor
 
 @Composable
 fun WeatherCard(
+    selectedDate: LocalDate? = null,
     viewModel: WeatherViewModel = hiltViewModel()
 ) {
     val keywords = listOf("thunderstorm", "drizzle", "rain", "snow", "clear", "clouds")
@@ -59,11 +56,13 @@ fun WeatherCard(
         ?.let { desc -> keywords.find { keyword -> keyword in desc } }
         ?: "clear"
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(key1 = selectedDate) {
+        val dateToFetch = selectedDate ?: LocalDate.now()
+        Log.d("WeatherCard", "날짜 변경됨: $dateToFetch")
         viewModel.fetchWeather(
             lat = 35.228700446027,
             lon = 129.07900236976,
-            date = LocalDate.of(2025, 5, 12)
+            date = dateToFetch
         )
     }
 

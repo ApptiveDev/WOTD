@@ -1,5 +1,9 @@
 package com.apptive.wotd.model.auth
 
+import com.apptive.wotd.model.weather.WeatherApi
+import com.apptive.wotd.model.moodreport.MoodReportApi
+import com.apptive.wotd.view.login.ApiResponse
+import com.apptive.wotd.view.login.UserMeResponse
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -10,13 +14,18 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
+import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.POST
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
 interface ServerAuthAPI {
-    @POST("auth/kakao/login")
+    @POST("kakao/signup")
     suspend fun signUp(@Body request: SignUpRequest): Response<SignUpResponse>
+
+    @GET("users/me")
+    suspend fun getMe(@Header("Authorization") token: String): Response<ApiResponse<UserMeResponse>>
 }
 
 @Module
@@ -61,5 +70,11 @@ object NetworkModule {
     @Singleton
     fun provideWeatherApi(retrofit: Retrofit): WeatherApi {
         return retrofit.create(WeatherApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideMoodReportApi(retrofit: Retrofit): MoodReportApi {
+        return retrofit.create(MoodReportApi::class.java)
     }
 }

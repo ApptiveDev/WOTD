@@ -1,4 +1,4 @@
-package com.apptive.wotd.model.auth
+package com.apptive.wotd.model.weather
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -21,6 +21,8 @@ class WeatherViewModel @Inject constructor(
     val weather: StateFlow<WeatherData?> = _weather
 
     fun fetchWeather(lat: Double, lon: Double, date: LocalDate) {
+        _weather.value = null
+        
         viewModelScope.launch {
             try {
                 Log.d(TAG, "날씨 API 호출 시작 - lat: $lat, lon: $lon, date: $date")
@@ -47,5 +49,9 @@ class WeatherViewModel @Inject constructor(
                 e.printStackTrace()
             }
         }
+    }
+
+    fun clearWeather() {
+        _weather.value = null
     }
 }
