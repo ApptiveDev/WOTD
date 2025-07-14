@@ -208,7 +208,7 @@ fun TermBottomSheet(
                         vm.completeSignUp(
                             onSuccess = { token, name ->
                                 TokenManager.saveData(context, token, name)
-                                navController.navigate("CalendarPage") {
+                                navController.navigate("MainPage") {
                                     popUpTo(0)
                                 }
                             },

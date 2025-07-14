@@ -39,6 +39,7 @@ import com.apptive.wotd.composable.CameraBtn
 import com.apptive.wotd.composable.HeightSpacer
 import com.apptive.wotd.ui.theme.pretendard
 import com.apptive.wotd.view.calender.WeatherCard
+import java.time.LocalDate
 
 @Composable
 fun HomePage() {
@@ -113,7 +114,7 @@ fun HomePage() {
             }
         }
         HeightSpacer(8.dp)
-        WeatherCard(viewModel = hiltViewModel())
+        WeatherCard(selectedDate = LocalDate.now(), viewModel = hiltViewModel())
         HeightSpacer(12.dp)
         CameraBtn( {} )
         HeightSpacer(12.dp)
