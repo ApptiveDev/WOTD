@@ -29,7 +29,6 @@ public class MoodReportService {
      * @param moodReportRequestDTO 무드 리포트 요청 DTO
      */
     public void saveMoodReport(Long userId, MoodReportRequestDTO moodReportRequestDTO) {
-        MoodReport moodReport = new MoodReport();
 
         LocalDate date = moodReportRequestDTO.date();
         double lat = moodReportRequestDTO.latitude();
@@ -38,6 +37,12 @@ public class MoodReportService {
         // 날짜 기준으로 Weather 조회
         Long weatherId = weatherApiService.getWeatherId(date, lat, lon);
 
+        Optional<MoodReport> existingReport = moodReportRepository.findByWeatherIdAndUserId(weatherId, userId);
+        if (existingReport.isPresent()) {
+            throw new IllegalStateException("이미 해당 날짜에 등록된 무드 리포트가 있습니다.");
+        }
+
+        MoodReport moodReport = new MoodReport();
         moodReport.setWeatherId(weatherId);
         moodReport.setUserId(userId);
         moodReport.setDate(date);
