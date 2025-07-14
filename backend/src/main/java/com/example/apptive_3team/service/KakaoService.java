@@ -37,11 +37,6 @@ public class KakaoService {
             throw new RuntimeException("이미 가입된 사용자입니다.");
         }
 
-        // ❗ agree(알림 수신 동의)가 필수
-        if (agree == null) {
-            throw new RuntimeException("회원가입 시 알림 수신 동의가 필요합니다.");
-        }
-
         // 새 유저 저장
         User newUser = new User();
         newUser.setProviderId(providerId);
