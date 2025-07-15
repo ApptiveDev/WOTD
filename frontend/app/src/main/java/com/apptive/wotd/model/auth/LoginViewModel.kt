@@ -18,20 +18,27 @@ class LoginViewModel @Inject constructor(
     val userMeState = mutableStateOf<UserMeResponse?>(null)
     val errorState = mutableStateOf<String?>(null)
 
-    fun loginWithJwt(token: String) {
+    fun loginWithJwt(
+        token: String,
+        onSuccess: () -> Unit = {},
+        onFailure: (String?) -> Unit = {}
+    ) {
         viewModelScope.launch {
             try {
                 val result = authRepository.getMe(token)
                 if (result.isSuccess) {
                     userMeState.value = result.data
                     loginState.value = LoginResult.Success
+                    onSuccess()
                 } else {
                     errorState.value = result.message
                     loginState.value = LoginResult.Failure
+                    onFailure(result.message)
                 }
             } catch (e: Exception) {
                 errorState.value = e.message
                 loginState.value = LoginResult.Failure
+                onFailure(e.message)
             }
         }
     }
