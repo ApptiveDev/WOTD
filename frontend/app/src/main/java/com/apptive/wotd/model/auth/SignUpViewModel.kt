@@ -40,7 +40,8 @@ class SignUpViewModel @Inject constructor(
         Log.d(tag, """
             - term: ${data.agree}
             - token: ${data.accessToken}
-        """.trimIndent())
+        """.trimIndent()
+        )
     }
 
     fun completeSignUp(

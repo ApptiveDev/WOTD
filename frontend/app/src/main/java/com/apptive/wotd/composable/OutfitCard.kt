@@ -31,7 +31,6 @@ import androidx.compose.ui.unit.sp
 import com.apptive.wotd.R
 import com.apptive.wotd.ui.theme.pretendard
 import coil.compose.rememberAsyncImagePainter
-import coil.request.ImageRequest
 
 @Composable
 fun OutfitGrid(imgTop: String? = null, imgBottom: String? = null, imgEtc: String? = null) {
@@ -64,17 +63,6 @@ val outfitItems = listOf(
 
 @Composable
 fun OutfitCard(category: String, imageUrl: String?, fallbackRes: Int) {
-    android.util.Log.d("OutfitCardDebug", "category=$category, imageUrl=$imageUrl")
-    val painter: Painter = if (!imageUrl.isNullOrBlank()) {
-        rememberAsyncImagePainter(
-            model = imageUrl,
-            onError = { error ->
-                android.util.Log.d("CoilError", "category=$category, url=$imageUrl, error=${error.result.throwable}")
-            }
-        )
-    } else {
-        painterResource(id = fallbackRes)
-    }
     Box(
         modifier = Modifier
             .aspectRatio(1f)
@@ -102,6 +90,11 @@ fun OutfitCard(category: String, imageUrl: String?, fallbackRes: Int) {
             )
         }
 
+        val painter: Painter = if (!imageUrl.isNullOrBlank()) {
+            rememberAsyncImagePainter(model = imageUrl)
+        } else {
+            painterResource(id = fallbackRes)
+        }
         Image(
             painter = painter,
             contentDescription = category,

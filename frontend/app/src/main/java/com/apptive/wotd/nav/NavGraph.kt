@@ -1,5 +1,8 @@
 package com.apptive.wotd.nav
+
+import android.util.Log
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -14,11 +17,32 @@ import com.apptive.wotd.view.main.ProgressPage
 import com.apptive.wotd.view.moodreport.MoodReportPage
 import com.apptive.wotd.view.main.MainViewModel
 import androidx.compose.ui.platform.LocalContext
+import com.apptive.wotd.model.auth.LoginViewModel
+import com.apptive.wotd.model.auth.TokenManager
+
 @Composable
 fun NavGraph(startPage: String){
     val navController = rememberNavController()
     val signUpViewModel: SignUpViewModel = hiltViewModel()
+    val loginViewModel: LoginViewModel = hiltViewModel()
     val mainViewModel: MainViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    val context = LocalContext.current
+    val jwtToken = TokenManager.getAccessToken(context)
+    LaunchedEffect(Unit) {
+        if (jwtToken != null) {
+            loginViewModel.loginWithJwt(
+                token = jwtToken,
+                onSuccess = {
+                    navController.navigate("MainPage") {
+                        popUpTo("LoginPage") { inclusive = true }
+                    }
+                },
+                onFailure = { message ->
+                    Log.e("Login", "실패: $message")
+                }
+            )
+        }
+    }
     NavHost(
         navController = navController,
         startDestination = startPage
@@ -47,11 +71,9 @@ fun NavGraph(startPage: String){
                 navController = navController
             )
         }
-        composable("ProgressPage/{phase}?date={date}&id={id}") { backStackEntry ->
+        composable("ProgressPage/{phase}") { backStackEntry ->
             val phase = backStackEntry.arguments?.getString("phase") ?: ""
-            val date = backStackEntry.arguments?.getString("date")
-            val id = backStackEntry.arguments?.getString("id")
-            ProgressPage(navController = navController, phase = phase.toInt(), date = date, moodReportId = id)
+            ProgressPage(navController = navController, phase = phase.toInt())
         }
         composable("LoadingPage/{phase}") { backStackEntry ->
             val phase = backStackEntry.arguments?.getString("phase") ?: ""
