@@ -1,19 +1,19 @@
 package com.example.apptive_3team.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import org.hibernate.type.descriptor.jdbc.TinyIntJdbcType;
 
 import java.time.LocalDate;
 
 public record MoodReportRequestDTO(Long id,
                                    Long weatherId,
-                                   @NotNull LocalDate date,
-                                   @NotNull LocalDate created_at,
-                                   @NotNull Double latitude,
-                                   @NotNull Double longitude,
-                                   @NotBlank String img_top,
-                                   @NotBlank String img_bottom,
-                                   @NotBlank String img_etc,
+                                   LocalDate date,
+                                   LocalDate created_at,
+                                   Double latitude,
+                                   Double longitude,
+                                   String img_top,
+                                   String img_bottom,
+                                   String img_etc,
                                    String content,
-                                   @NotNull Double score_feel) {
+                                   Double score_feel,
+                                   TinyIntJdbcType score_icon) {
 }

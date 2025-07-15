@@ -77,4 +77,10 @@ object NetworkModule {
     fun provideMoodReportApi(retrofit: Retrofit): MoodReportApi {
         return retrofit.create(MoodReportApi::class.java)
     }
+
+    @Provides
+    @Singleton
+    fun provideImageApi(retrofit: Retrofit): com.apptive.wotd.model.moodreport.ImageApi {
+        return retrofit.create(com.apptive.wotd.model.moodreport.ImageApi::class.java)
+    }
 }
