@@ -1,5 +1,4 @@
 package com.apptive.wotd.view.calender
-
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
@@ -75,14 +74,12 @@ fun CalendarPage(
     val moodReportViewModel: MoodReportViewModel = hiltViewModel()
     val allReports = moodReportViewModel.allReportsState.value
     val token = com.apptive.wotd.model.auth.TokenManager.getAccessToken(context)?.trim()
-
     val selectedTab by mainViewModel.selectedTab.collectAsState()
     LaunchedEffect(selectedTab) {
         if (selectedTab == com.apptive.wotd.composable.BottomTab.Calendar && !token.isNullOrBlank()) {
             moodReportViewModel.getAllMoodReports(token)
         }
     }
-
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner, token, selectedDate) {
         val observer = LifecycleEventObserver { _, event ->
@@ -100,7 +97,6 @@ fun CalendarPage(
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
-
     LaunchedEffect(token) {
         if (!token.isNullOrBlank()) {
             moodReportViewModel.getAllMoodReports(token)

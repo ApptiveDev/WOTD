@@ -1,5 +1,4 @@
 package com.apptive.wotd.model.auth
-
 import com.apptive.wotd.model.weather.WeatherApi
 import com.apptive.wotd.model.moodreport.MoodReportApi
 import com.apptive.wotd.view.login.ApiResponse
@@ -19,19 +18,15 @@ import retrofit2.http.Header
 import retrofit2.http.POST
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
-
 interface ServerAuthAPI {
     @POST("kakao/signup")
     suspend fun signUp(@Body request: SignUpRequest): Response<SignUpResponse>
-
     @GET("users/me")
     suspend fun getMe(@Header("Authorization") token: String): Response<ApiResponse<UserMeResponse>>
 }
-
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
-
     @Provides
     @Singleton
     fun provideOkHttpClient(): OkHttpClient {
@@ -49,7 +44,6 @@ object NetworkModule {
             .readTimeout(30, TimeUnit.SECONDS)
             .build()
     }
-
     @Provides
     @Singleton
     fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
@@ -59,22 +53,26 @@ object NetworkModule {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
-
     @Provides
     @Singleton
     fun provideServerAuthAPI(retrofit: Retrofit): ServerAuthAPI {
         return retrofit.create(ServerAuthAPI::class.java)
     }
-
     @Provides
     @Singleton
     fun provideWeatherApi(retrofit: Retrofit): WeatherApi {
         return retrofit.create(WeatherApi::class.java)
     }
-
     @Provides
     @Singleton
     fun provideMoodReportApi(retrofit: Retrofit): MoodReportApi {
         return retrofit.create(MoodReportApi::class.java)
     }
+
+  @Provides
+    @Singleton
+    fun provideImageApi(retrofit: Retrofit): com.apptive.wotd.model.moodreport.ImageApi {
+        return retrofit.create(com.apptive.wotd.model.moodreport.ImageApi::class.java)
+    }
 }
+
