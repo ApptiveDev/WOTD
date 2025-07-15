@@ -88,6 +88,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import androidx.compose.runtime.collectAsState
+import com.apptive.wotd.composable.HandleBackPressToExitApp
 
 class MainViewModel : ViewModel() {
     private val _selectedTab = MutableStateFlow(BottomTab.Calendar)
@@ -102,6 +103,7 @@ fun MainPage(
 ) {
     val selectedTab by mainViewModel.selectedTab.collectAsState()
     Log.d("MainPage", "selectedTab: $selectedTab")
+    HandleBackPressToExitApp(navController)
     Scaffold(
         bottomBar = {
             BottomBar(
