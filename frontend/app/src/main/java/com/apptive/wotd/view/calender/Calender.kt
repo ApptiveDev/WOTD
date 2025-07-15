@@ -60,16 +60,12 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.runtime.collectAsState
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import com.apptive.wotd.model.moodreport.ImageApi
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalendarPage(
     navController: NavController,
-    mainViewModel: com.apptive.wotd.view.main.MainViewModel = androidx.hilt.navigation.compose.hiltViewModel()
+    mainViewModel: com.apptive.wotd.view.main.MainViewModel
 ) {
     val context = LocalContext.current
     val prefs = context.getSharedPreferences("image_links", Context.MODE_PRIVATE)
@@ -211,46 +207,39 @@ fun CalendarPage(
         WeatherCard(selectedDate = selectedDate, viewModel = hiltViewModel())
         HeightSpacer(8.dp)
         if (!hasReportForSelectedDate) {
-            CameraBtn {
-                navController.navigate("ProgressPage/1?date=${selectedDate?.toString()}&id=${selectedMoodReportId}")
-            }
+            CameraBtn { navController.navigate("ProgressPage/1") }
             HeightSpacer(8.dp)
-        } else {
-            CameraBtn {
-                kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
-                    try { if (!imgTop.isNullOrBlank()) mainViewModel.imageApi.deleteImage(imgTop!!) } catch (_: Exception) {}
-                    try { if (!imgBottom.isNullOrBlank()) mainViewModel.imageApi.deleteImage(imgBottom!!) } catch (_: Exception) {}
-                    try { if (!imgEtc.isNullOrBlank()) mainViewModel.imageApi.deleteImage(imgEtc!!) } catch (_: Exception) {}
-                    prefs.edit()
-                        .putString("img_top", "")
-                        .putString("img_bottom", "")
-                        .putString("img_etc", "")
-                        .putString("img_top_prev", "")
-                        .putString("img_bottom_prev", "")
-                        .putString("img_etc_prev", "")
-                        .apply()
-                    withContext(kotlinx.coroutines.Dispatchers.Main) {
-                        navController.navigate("ProgressPage/1?date=${selectedDate?.toString()}&id=${selectedMoodReportId}")
-                    }
-                }
-            }
+        } else if (isScoreFeelZero) {
+            CameraBtn { navController.navigate("ProgressPage/1") }
             HeightSpacer(8.dp)
             MoodReportBtn(navController, selectedMoodReportId)
             HeightSpacer(8.dp)
-            if (!isScoreFeelZero) {
-                val scoreFeel = reportForSelectedDate?.moodReport?.score_feel
-                TodayMoodCard(scoreFeel = scoreFeel)
-                HeightSpacer(8.dp)
+            LaunchedEffect(singleReport) {
+                if (singleReport?.moodReport != null) {
+                    imgTop = singleReport.moodReport.img_top
+                    imgBottom = singleReport.moodReport.img_bottom
+                    imgEtc = singleReport.moodReport.img_etc
+                }
             }
-            if (reportForSelectedDate?.moodReport != null) {
-                val imgTop = reportForSelectedDate.moodReport.img_top
-                val imgBottom = reportForSelectedDate.moodReport.img_bottom
-                val imgEtc = reportForSelectedDate.moodReport.img_etc
+            if (singleReport?.moodReport != null) {
                 Log.d("OutfitGridDebug", "imgTop=$imgTop, imgBottom=$imgBottom, imgEtc=$imgEtc")
                 OutfitGrid(imgTop = imgTop, imgBottom = imgBottom, imgEtc = imgEtc)
             } else {
                 Text("이미지 정보를 불러오는 중입니다...")
             }
+        } else {
+            CameraBtn { navController.navigate("ProgressPage/1") }
+            HeightSpacer(8.dp)
+            MoodReportBtn(navController, selectedMoodReportId)
+            HeightSpacer(16.dp)
+            val scoreFeel = reportForSelectedDate?.moodReport?.score_feel
+            TodayMoodCard(scoreFeel = scoreFeel)
+            HeightSpacer(8.dp)
+            val imgTop = reportForSelectedDate?.moodReport?.img_top
+            val imgBottom = reportForSelectedDate?.moodReport?.img_bottom
+            val imgEtc = reportForSelectedDate?.moodReport?.img_etc
+            Log.d("OutfitGridDebug", "imgTop=$imgTop, imgBottom=$imgBottom, imgEtc=$imgEtc")
+            OutfitGrid(imgTop = imgTop, imgBottom = imgBottom, imgEtc = imgEtc)
         }
     }
 }
