@@ -6,9 +6,11 @@ import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.apptive.wotd.model.auth.SignUpViewModel
+import com.apptive.wotd.model.auth.TokenManager
 import com.apptive.wotd.nav.NavGraph
 import com.apptive.wotd.ui.theme.WOTDTheme
 import com.kakao.sdk.common.KakaoSdk
