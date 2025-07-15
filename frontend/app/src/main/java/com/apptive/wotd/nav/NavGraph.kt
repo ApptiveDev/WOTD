@@ -49,9 +49,11 @@ fun NavGraph(startPage: String){
                 navController = navController
             )
         }
-        composable("ProgressPage/{phase}") { backStackEntry ->
+        composable("ProgressPage/{phase}?date={date}&id={id}") { backStackEntry ->
             val phase = backStackEntry.arguments?.getString("phase") ?: ""
-            ProgressPage(navController = navController, phase = phase.toInt())
+            val date = backStackEntry.arguments?.getString("date")
+            val id = backStackEntry.arguments?.getString("id")
+            ProgressPage(navController = navController, phase = phase.toInt(), date = date, moodReportId = id)
         }
         composable("LoadingPage/{phase}") { backStackEntry ->
             val phase = backStackEntry.arguments?.getString("phase") ?: ""

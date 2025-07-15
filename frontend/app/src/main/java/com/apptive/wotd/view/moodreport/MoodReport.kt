@@ -91,23 +91,17 @@ fun MoodReportPage(
     val reviewLength = reviewText.length
     val isAllFilled = selected != 0 && reviewText.isNotBlank() && reviewLength <= 500
 
-    if (step == 2) {
-        LaunchedEffect(Unit) {
-            mainViewModel.setTab(com.apptive.wotd.composable.BottomTab.Calendar)
-            navController?.navigate("MainPage") {
-                popUpTo("MainPage") { inclusive = true }
-                launchSingleTop = true
-            }
-        }
-        return
-    }
-
     LaunchedEffect(addState.value) {
         addState.value?.let { state ->
             if (state.isSuccess) {
                 Toast.makeText(context, "무드리포트가 수정되었습니다.", Toast.LENGTH_SHORT).show()
                 viewModel.clearState()
-                step = 2
+                mainViewModel.setTab(com.apptive.wotd.composable.BottomTab.Calendar)
+                android.util.Log.d("MoodReportPage", "navigate to MainPage 호출됨: $navController")
+                navController?.navigate("MainPage") {
+                    popUpTo("MainPage") { inclusive = true }
+                    launchSingleTop = true
+                }
             }
         }
     }
@@ -119,6 +113,7 @@ fun MoodReportPage(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp, vertical = 60.dp)
     ) {
+        android.util.Log.d("OutfitGridDebug", "imgTop=${actualOrigin.img_top}, imgBottom=${actualOrigin.img_bottom}, imgEtc=${actualOrigin.img_etc}")
         OutfitGrid(
             imgTop = actualOrigin.img_top,
             imgBottom = actualOrigin.img_bottom,

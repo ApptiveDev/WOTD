@@ -88,8 +88,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import androidx.compose.runtime.collectAsState
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
-class MainViewModel : ViewModel() {
+@HiltViewModel
+class MainViewModel @Inject constructor(
+    val imageApi: com.apptive.wotd.model.moodreport.ImageApi
+) : ViewModel() {
     private val _selectedTab = MutableStateFlow(BottomTab.Calendar)
     val selectedTab: StateFlow<BottomTab> = _selectedTab.asStateFlow()
     fun setTab(tab: BottomTab) { _selectedTab.value = tab }
@@ -98,8 +103,9 @@ class MainViewModel : ViewModel() {
 @Composable
 fun MainPage(
     navController: NavController,
-    mainViewModel: MainViewModel = viewModel()
+    mainViewModel: MainViewModel = androidx.hilt.navigation.compose.hiltViewModel()
 ) {
+    Log.d("MainPage", "MainPage Composable 호출됨")
     val selectedTab by mainViewModel.selectedTab.collectAsState()
     Log.d("MainPage", "selectedTab: $selectedTab")
     Scaffold(
@@ -128,6 +134,11 @@ fun MainPage(
                 }
                 BottomTab.MyPage -> {
                     Log.d("MainPage", "MyPage 진입")
+                    Text("마이페이지 준비중")
+                }
+                else -> {
+                    Log.d("MainPage", "selectedTab 오류: $selectedTab")
+                    Text("selectedTab 오류: $selectedTab")
                 }
             }
         }
@@ -137,7 +148,9 @@ fun MainPage(
 @Composable
 fun ProgressPage(
     navController: NavController,
-    phase: Int
+    phase: Int,
+    date: String? = null,
+    moodReportId: String? = null
 ) {
     val context = LocalContext.current
     val activity = context as? Activity
@@ -151,7 +164,7 @@ fun ProgressPage(
     var imgBottomLink by remember { mutableStateOf(prefs.getString("img_bottom", "") ?: "") }
     var imgEtcLink by remember { mutableStateOf(prefs.getString("img_etc", "") ?: "") }
     
-    val selectedDateString = prefs.getString("selected_date", LocalDate.now().toString()) ?: LocalDate.now().toString()
+    val selectedDateString = date ?: prefs.getString("selected_date", LocalDate.now().toString()) ?: LocalDate.now().toString()
 
     fun uriToMultipart(context: Context, uri: Uri): MultipartBody.Part? {
         val inputStream = context.contentResolver.openInputStream(uri) ?: return null
@@ -171,11 +184,15 @@ fun ProgressPage(
     val imageApi = retrofit.create(ImageApi::class.java)
     val moodReportApi = retrofit.create(MoodReportApi::class.java)
 
-    fun uploadImage(
+    fun uploadAndReplaceImage(
+        oldUrl: String?,
         newImagePart: MultipartBody.Part,
         onSuccess: (String) -> Unit
     ) {
         CoroutineScope(Dispatchers.IO).launch {
+            if (!oldUrl.isNullOrBlank()) {
+                try { imageApi.deleteImage(oldUrl) } catch (_: Exception) {}
+            }
             val response = imageApi.uploadImage(newImagePart)
             if (response.isSuccessful) {
                 val newUrl = response.body()?.string() ?: ""
@@ -183,6 +200,12 @@ fun ProgressPage(
             }
         }
     }
+
+    val singleReportState by moodReportViewModel.singleReportState
+    var shouldUpdate by remember { mutableStateOf(false) }
+    var latestImgTop by remember { mutableStateOf("") }
+    var latestImgBottom by remember { mutableStateOf("") }
+    var latestImgEtc by remember { mutableStateOf("") }
 
     val imageLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -193,24 +216,32 @@ fun ProgressPage(
             val goNext: () -> Unit = {
                 navController.navigate(
                     when (phase) {
-                        1 -> "ProgressPage/2"
-                        2 -> "ProgressPage/3"
+                        1 -> "ProgressPage/2?date=$selectedDateString&id=$moodReportId"
+                        2 -> "ProgressPage/3?date=$selectedDateString&id=$moodReportId"
                         else -> {
-                            val request = MoodReportRequestDTO(
-                                date = selectedDateString,
-                                created_at = LocalDate.now().toString(),
-                                latitude = 35.2433,
-                                longitude = 129.0752,
-                                img_top = imgTopLink,
-                                img_bottom = imgBottomLink,
-                                img_etc = imgEtcLink,
-                                content = " ",
-                                score_feel = 0.0,
-                            )
                             val rawToken = TokenManager.getAccessToken(context)
                             val token = rawToken?.trim()
                             if (!token.isNullOrBlank()) {
-                                moodReportViewModel.addMoodReport(token, request)
+                                if (!moodReportId.isNullOrBlank() && moodReportId != "null") {
+                                    latestImgTop = imgTopLink
+                                    latestImgBottom = imgBottomLink
+                                    latestImgEtc = imgEtcLink
+                                    moodReportViewModel.getMoodReport(token, moodReportId.toLong())
+                                    shouldUpdate = true
+                                } else {
+                                    val request = com.apptive.wotd.model.moodreport.MoodReportRequestDTO(
+                                        date = selectedDateString,
+                                        created_at = LocalDate.now().toString(),
+                                        latitude = 35.2433,
+                                        longitude = 129.0752,
+                                        img_top = imgTopLink,
+                                        img_bottom = imgBottomLink,
+                                        img_etc = imgEtcLink,
+                                        content = " ",
+                                        score_feel = 0.0
+                                    )
+                                    moodReportViewModel.addMoodReport(token, request)
+                                }
                             } else {
                                 Log.e("MoodReport", "토큰이 없습니다. 무드리포트 요청을 보내지 않습니다.")
                             }
@@ -224,17 +255,17 @@ fun ProgressPage(
                 val part = uriToMultipart(context, uri)
                 if (part != null) {
                     when (phase) {
-                        1 -> uploadImage(part) { newUrl ->
+                        1 -> uploadAndReplaceImage(imgTopLink, part) { newUrl ->
                             imgTopLink = newUrl
                             prefs.edit().putString("img_top", imgTopLink).apply()
                             goNext()
                         }
-                        2 -> uploadImage(part) { newUrl ->
+                        2 -> uploadAndReplaceImage(imgBottomLink, part) { newUrl ->
                             imgBottomLink = newUrl
                             prefs.edit().putString("img_bottom", imgBottomLink).apply()
                             goNext()
                         }
-                        3 -> uploadImage(part) { newUrl ->
+                        3 -> uploadAndReplaceImage(imgEtcLink, part) { newUrl ->
                             imgEtcLink = newUrl
                             prefs.edit().putString("img_etc", imgEtcLink).apply()
                             goNext()
@@ -252,17 +283,17 @@ fun ProgressPage(
                         val requestFile = file.asRequestBody("image/png".toMediaTypeOrNull())
                         val part = MultipartBody.Part.createFormData("image", file.name, requestFile)
                         when (phase) {
-                            1 -> uploadImage(part) { newUrl ->
+                            1 -> uploadAndReplaceImage(imgTopLink, part) { newUrl ->
                                 imgTopLink = newUrl
                                 prefs.edit().putString("img_top", imgTopLink).apply()
                                 goNext()
                             }
-                            2 -> uploadImage(part) { newUrl ->
+                            2 -> uploadAndReplaceImage(imgBottomLink, part) { newUrl ->
                                 imgBottomLink = newUrl
                                 prefs.edit().putString("img_bottom", imgBottomLink).apply()
                                 goNext()
                             }
-                            3 -> uploadImage(part) { newUrl ->
+                            3 -> uploadAndReplaceImage(imgEtcLink, part) { newUrl ->
                                 imgEtcLink = newUrl
                                 prefs.edit().putString("img_etc", imgEtcLink).apply()
                                 goNext()
@@ -336,7 +367,7 @@ fun ProgressPage(
         HeightSpacer(58.dp)
     }
 
-    // 결과 처리
+    // 결과 처리 및 update 트리거
     LaunchedEffect(addState) {
         if (addState != null) {
             prefs.edit().clear().apply()
@@ -346,6 +377,30 @@ fun ProgressPage(
     LaunchedEffect(errorState) {
         if (errorState != null) {
             // 에러 처리 (예: Toast 등)
+        }
+    }
+    // 기존 데이터 fetch 후 update 트리거
+    LaunchedEffect(singleReportState, shouldUpdate) {
+        if (shouldUpdate && singleReportState?.moodReport != null && !moodReportId.isNullOrBlank() && moodReportId != "null") {
+            val oldReport = singleReportState!!.moodReport!!
+            val rawToken = TokenManager.getAccessToken(context)
+            val token = rawToken?.trim()
+            if (!token.isNullOrBlank()) {
+                val updateRequest = com.apptive.wotd.model.moodreport.MoodReportUpdateRequest(
+                    id = oldReport.id,
+                    date = oldReport.date,
+                    created_at = oldReport.created_at,
+                    latitude = oldReport.latitude,
+                    longitude = oldReport.longitude,
+                    img_top = if (latestImgTop.isNotBlank()) latestImgTop else oldReport.img_top,
+                    img_bottom = if (latestImgBottom.isNotBlank()) latestImgBottom else oldReport.img_bottom,
+                    img_etc = if (latestImgEtc.isNotBlank()) latestImgEtc else oldReport.img_etc,
+                    content = oldReport.content,
+                    score_feel = oldReport.score_feel
+                )
+                moodReportViewModel.updateMoodReport(token, updateRequest)
+                shouldUpdate = false
+            }
         }
     }
 }
