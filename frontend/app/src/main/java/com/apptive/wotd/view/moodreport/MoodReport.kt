@@ -1,5 +1,4 @@
 package com.apptive.wotd.view.moodreport
-
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -51,7 +50,6 @@ import com.apptive.wotd.model.auth.TokenManager
 import androidx.navigation.NavController
 import android.widget.Toast
 import com.apptive.wotd.view.main.MainViewModel
-
 @Composable
 fun MoodReportPage(
     moodReportId: Long,
@@ -64,17 +62,13 @@ fun MoodReportPage(
     val viewModel: MoodReportViewModel = hiltViewModel()
     val addState = viewModel.addState
     val singleReportState = viewModel.singleReportState.value
-
     var step by remember { mutableStateOf(1) }
-
     LaunchedEffect(origin, token, moodReportId) {
         if (origin == null && !token.isNullOrBlank() && moodReportId != 0L) {
             viewModel.getMoodReport(token, moodReportId)
         }
     }
-
     val actualOrigin = origin ?: singleReportState?.moodReport
-
     if (actualOrigin == null) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -85,7 +79,6 @@ fun MoodReportPage(
         }
         return
     }
-
     var selected by remember { mutableStateOf(actualOrigin.score_feel?.toInt() ?: 0) } // 만족도
     var reviewText by remember { mutableStateOf(actualOrigin.content ?: "") } // 총평
     val reviewLength = reviewText.length
@@ -105,7 +98,6 @@ fun MoodReportPage(
             }
         }
     }
-
     Column (
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -153,7 +145,6 @@ fun MoodReportPage(
         )
     }
 }
-
 @Composable
 fun SatisfactionEdit(selected: Int, onSelect: (Int) -> Unit) {
     Column (
@@ -221,7 +212,6 @@ fun SatisfactionEdit(selected: Int, onSelect: (Int) -> Unit) {
         }
     }
 }
-
 @Composable
 fun OverallReview(reviewText: String, onReviewChange: (String) -> Unit, reviewLength: Int) {
     Column (
@@ -281,7 +271,6 @@ fun OverallReview(reviewText: String, onReviewChange: (String) -> Unit, reviewLe
         }
     }
 }
-
 @Composable
 fun EditConfirmBtn(enabled: Boolean, onClick: () -> Unit) {
     Button(
@@ -318,7 +307,6 @@ fun EditConfirmBtn(enabled: Boolean, onClick: () -> Unit) {
         }
     }
 }
-
 @Preview
 @Composable
 fun MoodReportPagePreview() {

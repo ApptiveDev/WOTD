@@ -1,5 +1,4 @@
 package com.apptive.wotd.composable
-
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -56,9 +55,7 @@ fun OutfitGrid(imgTop: String? = null, imgBottom: String? = null, imgEtc: String
         }
     }
 }
-
 data class OutfitItem(val category: String, val imageRes: Int)
-
 val outfitItems = listOf(
     OutfitItem("상의", R.drawable.ic_frog_satisfied_4),
     OutfitItem("하의", R.drawable.ic_frog_satisfied_4),
@@ -85,7 +82,6 @@ fun OutfitCard(category: String, imageUrl: String?, fallbackRes: Int) {
             .border(1.dp, Color(0xFFEBEEF2), shape = RoundedCornerShape(8.dp))
             .fillMaxWidth()
             .height(156.dp)
-
     ) {
         Box(
             modifier = Modifier
@@ -117,7 +113,6 @@ fun OutfitCard(category: String, imageUrl: String?, fallbackRes: Int) {
         )
     }
 }
-
 @Preview
 @Composable
 fun OutfitGridPreview() {

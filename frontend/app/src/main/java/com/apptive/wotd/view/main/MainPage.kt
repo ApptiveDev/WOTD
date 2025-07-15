@@ -1,5 +1,4 @@
 package com.apptive.wotd.view.main
-
 import android.app.Activity
 import android.content.Intent
 import android.provider.MediaStore
@@ -99,7 +98,6 @@ class MainViewModel @Inject constructor(
     val selectedTab: StateFlow<BottomTab> = _selectedTab.asStateFlow()
     fun setTab(tab: BottomTab) { _selectedTab.value = tab }
 }
-
 @Composable
 fun MainPage(
     navController: NavController,
@@ -144,7 +142,6 @@ fun MainPage(
         }
     }
 }
-
 @Composable
 fun ProgressPage(
     navController: NavController,
@@ -158,12 +155,12 @@ fun ProgressPage(
     val moodReportViewModel: MoodReportViewModel = hiltViewModel()
     val addState by moodReportViewModel.addState
     val errorState by moodReportViewModel.errorState
-    
+
     val prefs = context.getSharedPreferences("image_links", Context.MODE_PRIVATE)
     var imgTopLink by remember { mutableStateOf(prefs.getString("img_top", "") ?: "") }
     var imgBottomLink by remember { mutableStateOf(prefs.getString("img_bottom", "") ?: "") }
     var imgEtcLink by remember { mutableStateOf(prefs.getString("img_etc", "") ?: "") }
-    
+
     val selectedDateString = date ?: prefs.getString("selected_date", LocalDate.now().toString()) ?: LocalDate.now().toString()
 
     fun uriToMultipart(context: Context, uri: Uri): MultipartBody.Part? {
@@ -176,7 +173,6 @@ fun ProgressPage(
         val requestFile = file.asRequestBody("image/png".toMediaTypeOrNull())
         return MultipartBody.Part.createFormData("image", file.name, requestFile)
     }
-
     val retrofit = Retrofit.Builder()
         .baseUrl("http://43.203.233.18:8080/")
         .addConverterFactory(GsonConverterFactory.create())
@@ -306,7 +302,6 @@ fun ProgressPage(
             }
         }
     }
-
     fun showImagePicker() {
         val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
         val galleryIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
@@ -314,7 +309,6 @@ fun ProgressPage(
         chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, arrayOf(cameraIntent))
         imageLauncher.launch(chooser)
     }
-
     Column(
         modifier = WhiteScreenModifier,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -420,7 +414,6 @@ fun LoadingPage(
             }
         )
     }
-
     Column(
         modifier = WhiteScreenModifier,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -441,7 +434,6 @@ fun LoadingPage(
         Canvas(modifier = Modifier.size(size = 168.dp)) {
             val startAngle = 5f
             val sweepAngle = 350f
-
             rotate(translateAnimation) {
                 drawArc(
                     brush = Brush.sweepGradient(

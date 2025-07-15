@@ -1,5 +1,4 @@
 package com.apptive.wotd.nav
-
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
@@ -15,7 +14,6 @@ import com.apptive.wotd.view.main.ProgressPage
 import com.apptive.wotd.view.moodreport.MoodReportPage
 import com.apptive.wotd.view.main.MainViewModel
 import androidx.compose.ui.platform.LocalContext
-
 @Composable
 fun NavGraph(startPage: String){
     val navController = rememberNavController()
