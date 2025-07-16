@@ -1,11 +1,13 @@
 package com.apptive.wotd.view.home
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,6 +17,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -37,9 +41,75 @@ import com.apptive.wotd.composable.HeightSpacer
 import com.apptive.wotd.ui.theme.pretendard
 import com.apptive.wotd.view.calender.WeatherCard
 import java.time.LocalDate
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import com.apptive.wotd.model.auth.TokenManager
+import com.apptive.wotd.model.weather.WeatherViewModel
+import com.apptive.wotd.model.recommend.RecommendApi
+import com.apptive.wotd.model.recommend.StylingSuggestionRequest
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 
 @Composable
 fun HomePage() {
+    val weatherViewModel: WeatherViewModel = hiltViewModel()
+    val weatherState = weatherViewModel.weather.collectAsState().value
+    val context = LocalContext.current
+
+    LaunchedEffect(weatherState) {
+        val temp = weatherState?.tempFeelsLike
+        val rain = weatherState?.rainAmount
+        val token = TokenManager.getAccessToken(context) ?: ""
+        val authHeader = "Bearer $token"
+        if (temp != null && rain != null) {
+            val logging = HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BODY
+            }
+            val client = OkHttpClient.Builder()
+                .addInterceptor(logging)
+                .build()
+            val retrofit = Retrofit.Builder()
+                .baseUrl("http://43.203.233.18:8080/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .client(client)
+                .build()
+            val recommendApi = retrofit.create(RecommendApi::class.java)
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    val response = recommendApi.getStylingSuggestion(
+                        token = authHeader,
+                        request = StylingSuggestionRequest(
+                            temp_feels_like = temp,
+                            rain_amount = rain
+                        )
+                    )
+                    if (response.isSuccessful) {
+                        val body = response.body()
+                        Log.d("HomePage", "stylingSuggestion 전체 응답: $body")
+                        if (body?.isSuccess == true) {
+                            Log.d("HomePage", "추천 메시지: ${body.data?.message}")
+                            Log.d("HomePage", "추천 개수: ${body.data?.cnt_suggestions}")
+                            Log.d("HomePage", "추천 리스트: ${body.data?.suggestions}")
+                        } else {
+                            Log.e("HomePage", "추천 실패: ${body?.message}, 에러코드: ${body?.errorCode}")
+                        }
+                    } else {
+                        Log.e("HomePage", "StylingSuggestion 실패: code=${response.code()}, error=${response.errorBody()?.string()}")
+                    }
+                } catch (e: Exception) {
+                    Log.e("HomePage", "StylingSuggestion 통신 오류", e)
+                }
+            }
+        }
+    }
+
     Column (
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
