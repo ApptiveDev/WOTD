@@ -88,6 +88,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import androidx.compose.runtime.collectAsState
 import com.apptive.wotd.composable.HandleBackPressToExitApp
+import com.apptive.wotd.view.mypage.MyPage
 
 class MainViewModel : ViewModel() {
     private val _selectedTab = MutableStateFlow(BottomTab.Calendar)
@@ -128,6 +129,7 @@ fun MainPage(
                 }
                 BottomTab.MyPage -> {
                     Log.d("MainPage", "MyPage 진입")
+                    MyPage()
                 }
             }
         }

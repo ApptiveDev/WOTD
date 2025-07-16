@@ -19,6 +19,7 @@ import com.apptive.wotd.view.main.MainViewModel
 import androidx.compose.ui.platform.LocalContext
 import com.apptive.wotd.model.auth.LoginViewModel
 import com.apptive.wotd.model.auth.TokenManager
+import com.apptive.wotd.view.mypage.MyPage
 
 @Composable
 fun NavGraph(startPage: String){
@@ -58,6 +59,9 @@ fun NavGraph(startPage: String){
         }
         composable("HomePage"){
             HomePage()
+        }
+        composable("MyPage"){
+            MyPage()
         }
         composable("MoodReportPage/{moodReportId}") { backStackEntry ->
             val moodReportId = backStackEntry.arguments?.getString("moodReportId")?.toLongOrNull() ?: 0L
