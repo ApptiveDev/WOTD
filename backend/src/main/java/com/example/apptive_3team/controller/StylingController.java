@@ -3,6 +3,7 @@ package com.example.apptive_3team.controller;
 import com.example.apptive_3team.ApiResponse;
 import com.example.apptive_3team.dto.StylingSuggestionRequestDTO;
 import com.example.apptive_3team.dto.StylingSuggestionResponseDTO;
+import com.example.apptive_3team.dto.WeatherSummaryDTO;
 import com.example.apptive_3team.entity.MoodReport;
 import com.example.apptive_3team.service.KakaoService;
 import com.example.apptive_3team.service.MoodReportService;
@@ -46,15 +47,15 @@ public class StylingController {
                     .collect(Collectors.toList());
             log.debug("🌦 기존 날씨 ID 추출 완료 - {}개", weatherIds.size());
 
-            List<Long> filteredWeatherIds = weatherApiService.getSimilarWeatherIdsFromIds(
+            List<WeatherSummaryDTO> filteredWeathers = weatherApiService.getSimilarWeathersFromIds(
                     weatherIds, request.temp_feels_like(), request.rain_amount());
-            log.debug("🔍 필터링된 날씨 ID - {}개", filteredWeatherIds.size());
+            log.debug("🔍 필터링된 날씨 ID - {}개", filteredWeathers.size());
 
             List<MoodReport> filteredMoodReports =
-                    moodReportService.getMoodReportsByWeatherIdsAndUserId(filteredWeatherIds, userId);
+                    moodReportService.getMoodReportsByWeatherIdsAndUserId(filteredWeathers, userId);
             log.debug("🎯 조건에 부합하는 무드리포트 {}개 추출 완료", filteredMoodReports.size());
 
-            StylingSuggestionResponseDTO data = stylingService.StylingSuggestion(filteredMoodReports, request.temp_feels_like());
+            StylingSuggestionResponseDTO data = stylingService.StylingSuggestion(filteredWeathers, filteredMoodReports, request.temp_feels_like());
             log.info("✅ 코디 추천 성공 - 추천 결과 생성됨");
 
             return ResponseEntity.ok(ApiResponse.success("코디 추천을 완료했습니다.", data));

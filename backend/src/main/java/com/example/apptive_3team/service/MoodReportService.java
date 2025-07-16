@@ -1,6 +1,7 @@
 package com.example.apptive_3team.service;
 
 import com.example.apptive_3team.dto.MoodReportRequestDTO;
+import com.example.apptive_3team.dto.WeatherSummaryDTO;
 import com.example.apptive_3team.entity.MoodReport;
 import com.example.apptive_3team.exception.MoodReport.MoodReportNotFoundException;
 import com.example.apptive_3team.repository.MoodReportRepository;
@@ -113,7 +114,7 @@ public class MoodReportService {
 
     /**
      * 저장된 무드리포트를 삭제하는 메서드.
-     * 
+     *
      * @param userId 사용자 ID
      * @param moodReportId 삭제할 무드리포트 ID
      */
@@ -132,16 +133,19 @@ public class MoodReportService {
     /**
      * 날씨 ID 리스트를 stream하여 사용자 ID값과 동시에 관련있는 무드 리포트를 리스트로 반환하는 메서드.
      *
-     * @param weatherIds 날씨 ID 리스트
+     * @param weathers 필터링된 날씨 정보 리스트
      * @param userId 사용자 ID
      * @return 조건에 부합하는 무드 리포트들을 리스트로 반환
      */
-    public List<MoodReport> getMoodReportsByWeatherIdsAndUserId(List<Long> weatherIds, Long userId) {
+    public List<MoodReport> getMoodReportsByWeatherIdsAndUserId(List<WeatherSummaryDTO> weathers, Long userId) {
         List<MoodReport> result = new ArrayList<>();
 
-        for (Long weatherId : weatherIds) {
-            moodReportRepository.findByWeatherIdAndUserId(weatherId, userId)
-                    .ifPresent(result::add);
+        if (weathers != null) {
+            for (WeatherSummaryDTO weather : weathers) {
+                Long weatherId = weather.id(); // record 타입의 getter
+                moodReportRepository.findByWeatherIdAndUserId(weatherId, userId)
+                        .ifPresent(result::add);
+            }
         }
 
         return result;

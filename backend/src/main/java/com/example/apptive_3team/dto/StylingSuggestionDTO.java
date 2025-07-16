@@ -5,6 +5,8 @@ import java.time.LocalDate;
 public record StylingSuggestionDTO(Long moodReportId,
                                    Long weatherId,
                                    LocalDate date,
+                                   Double temp_avg,
+                                   Double temp_feels_like,
                                    String img_top,
                                    String img_bottom,
                                    String img_etc,
