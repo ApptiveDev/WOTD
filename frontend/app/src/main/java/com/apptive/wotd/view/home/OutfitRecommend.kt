@@ -13,10 +13,14 @@ import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -34,6 +38,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
@@ -45,8 +50,9 @@ import com.apptive.wotd.ui.theme.pretendard
 @Composable
 fun TodaysOutfitRecommend() {
     var selected by remember { mutableStateOf(0) }
+    var sliderPosition by remember { mutableStateOf(0.8f) }
 
-    Column (
+    Column(
         horizontalAlignment = Alignment.Start,
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -76,15 +82,15 @@ fun TodaysOutfitRecommend() {
             )
         }
         HeightSpacer(8.dp)
-        Column (
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+        Column(
+            verticalArrangement = Arrangement.spacedBy(20.dp),
             horizontalAlignment = Alignment.Start,
             modifier = Modifier
                 .fillMaxWidth()
-                .background(color = Color(0xFFF4F5F6), shape = RoundedCornerShape(12.dp))
-                .padding(20.dp)
+                .background(color = Color(0xFFF4F5F6), shape = RoundedCornerShape(size = 8.dp))
+                .padding(start = 20.dp, top = 24.dp, end = 20.dp, bottom = 24.dp)
         ) {
-            Row (
+            Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth()
@@ -94,6 +100,19 @@ fun TodaysOutfitRecommend() {
                 RecommendItem()
                 RecommendItem()
             }
+            OutfitInfoRow(label = "최근에 이 옷을 입은 날짜", value1 = "5월 17일")
+            OutfitInfoRow(
+                label = "해당 날짜의 기온 / 체감온도",
+                value1 = "22",
+                value2 = "24",
+                keyColor = Color(0xFF25D061),
+                measure = "°C"
+            )
+            Column(modifier = Modifier.fillMaxWidth()){
+                OutfitInfoRow(label = "만족도", value1 = (sliderPosition*100).toInt().toString(), measure = "%")
+                FrogSatisfactionSlider(sliderPosition, onValueChange = {sliderPosition = it})
+            }
+
         }
     }
 }
@@ -123,7 +142,13 @@ fun RecommendItem() {
 }
 
 @Composable
-fun OutfitInfoRow(label: String, value: String, keyColor: Color, measure: String) {
+fun OutfitInfoRow(
+    label: String,
+    value1: String,
+    value2: String = "",
+    keyColor: Color = Color(0xFF25D061),
+    measure: String = ""
+) {
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
@@ -138,14 +163,16 @@ fun OutfitInfoRow(label: String, value: String, keyColor: Color, measure: String
                 color = Color(0xFF64666A),
             )
         )
-        Row() {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Text(
-                text = value,
+                text = value1,
                 style = TextStyle(
                     fontSize = 16.sp,
                     fontFamily = FontFamily(Font(R.font.ownglyph_corncorn)),
                     fontWeight = FontWeight(400),
-                    color = keyColor,
+                    color = if (value2.isNotEmpty()) keyColor else Color(0xFF121417),
                 )
             )
             if (measure.isNotEmpty()) {
@@ -160,13 +187,69 @@ fun OutfitInfoRow(label: String, value: String, keyColor: Color, measure: String
                     )
                 )
             }
+            if (value2.isNotEmpty()) {
+                Text(
+                    text = "/",
+                    style = TextStyle(
+                        fontSize = 16.sp,
+                        fontFamily = FontFamily(Font(R.font.ownglyph_corncorn)),
+                        fontWeight = FontWeight(400),
+                        color = Color(0xFF121417),
+                    ),
+                    modifier = Modifier.padding(horizontal = 4.dp)
+                )
+                Text(
+                    text = value2,
+                    style = TextStyle(
+                        fontSize = 16.sp,
+                        fontFamily = FontFamily(Font(R.font.ownglyph_corncorn)),
+                        fontWeight = FontWeight(400),
+                        color = keyColor,
+                    )
+                )
+                if (measure.isNotEmpty()) {
+                    WidthSpacer(2.dp)
+                    Text(
+                        text = measure,
+                        style = TextStyle(
+                            fontSize = 16.sp,
+                            fontFamily = FontFamily(Font(R.font.ownglyph_corncorn)),
+                            fontWeight = FontWeight(400),
+                            color = Color(0xFF121417),
+                        )
+                    )
+                }
+            }
         }
     }
 }
 
 
-@Preview
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun OutfitRecommendPreview() {
-    TodaysOutfitRecommend()
+fun FrogSatisfactionSlider(
+    sliderPosition: Float = 0.8f,
+    onValueChange: (Float) -> Unit
+) {
+    var sliderPosition by remember { mutableStateOf(sliderPosition) }
+    Slider(
+        value = sliderPosition,
+        onValueChange = {
+            sliderPosition = it
+            onValueChange(it)
+        },
+        valueRange = 0f..1f,
+        modifier = Modifier.fillMaxWidth(),
+        colors = SliderDefaults.colors(
+            thumbColor = Color.Transparent,
+            activeTrackColor = Color(0xFF22C55E),
+            inactiveTrackColor = Color(0xFF22C55E).copy(alpha = 0.2f)
+        ),
+        thumb = {
+            Image(
+                imageVector = ImageVector.vectorResource(R.drawable.btn_slider_frog),
+                contentDescription = "frog"
+            )
+        }
+    )
 }
