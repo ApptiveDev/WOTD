@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -45,10 +46,14 @@ import androidx.compose.ui.zIndex
 import com.apptive.wotd.R
 import com.apptive.wotd.composable.HeightSpacer
 import com.apptive.wotd.composable.WidthSpacer
+import com.apptive.wotd.model.recommend.StylingSuggestionData
 import com.apptive.wotd.ui.theme.pretendard
+import coil.compose.AsyncImage
 
 @Composable
-fun TodaysOutfitRecommend() {
+fun TodaysOutfitRecommend(
+    stylingResult: StylingSuggestionData? = null
+) {
     var selected by remember { mutableStateOf(0) }
     var sliderPosition by remember { mutableStateOf(0.8f) }
 
@@ -90,21 +95,21 @@ fun TodaysOutfitRecommend() {
                 .background(color = Color(0xFFF4F5F6), shape = RoundedCornerShape(size = 8.dp))
                 .padding(start = 20.dp, top = 24.dp, end = 20.dp, bottom = 24.dp)
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                RecommendItem()
-                RecommendItem()
-                RecommendItem()
-                RecommendItem()
+                stylingResult?.suggestions?.forEach { suggestion ->
+                    item {
+                        RecommendItem(top = suggestion.img_top, bottom = suggestion.img_bottom, etc = suggestion.img_etc)
+                    }
+                }
             }
-            OutfitInfoRow(label = "최근에 이 옷을 입은 날짜", value1 = "5월 17일")
+            OutfitInfoRow(label = "최근에 이 옷을 입은 날짜", value1 = stylingResult?.suggestions?.firstOrNull()?.date ?: "알 수 없음")
             OutfitInfoRow(
                 label = "해당 날짜의 기온 / 체감온도",
-                value1 = "22",
-                value2 = "24",
+                value1 = stylingResult?.suggestions?.firstOrNull()?.temp_avg?.toInt()?.toString() ?: "-",
+                value2 = stylingResult?.suggestions?.firstOrNull()?.temp_feels_like?.toInt()?.toString() ?: "-",
                 keyColor = Color(0xFF25D061),
                 measure = "°C"
             )
@@ -118,26 +123,41 @@ fun TodaysOutfitRecommend() {
 }
 
 @Composable
-fun RecommendItem() {
-    Row {
-        Column(
+fun RecommendItem(top: String, bottom: String, etc: String) {
+    Row(
+        modifier = Modifier
+            .border(width = 1.dp, color = Color(0xFFEBEEF2), shape = RoundedCornerShape(4.dp))
+            .width(180.dp)
+            .height(60.dp)
+            .background(color = Color(0xFFFCFCFC), shape = RoundedCornerShape(4.dp))
+            .padding(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        AsyncImage(
+            model = top,
+            contentDescription = "상의 이미지",
+            contentScale = ContentScale.Crop,
             modifier = Modifier
-                .border(width = 1.dp, color = Color(0xFFEBEEF2), shape = RoundedCornerShape(4.dp))
-                .width(60.dp)
-                .height(60.dp)
-                .background(color = Color(0xFFFCFCFC), shape = RoundedCornerShape(4.dp)),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Image(
-                imageVector = ImageVector.vectorResource(R.drawable.ic_frog_satisfied_4),
-                contentDescription = "아이템",
-                contentScale = ContentScale.Fit,
-                modifier = Modifier
-                    .fillMaxWidth()
-            )
-
-        }
+                .weight(1f)
+                .height(48.dp)
+        )
+        AsyncImage(
+            model = bottom,
+            contentDescription = "하의 이미지",
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .weight(1f)
+                .height(48.dp)
+        )
+        AsyncImage(
+            model = etc,
+            contentDescription = "기타 이미지",
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .weight(1f)
+                .height(48.dp)
+        )
     }
 }
 
