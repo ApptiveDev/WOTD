@@ -2,6 +2,7 @@ package com.example.apptive_3team.service;
 
 import com.example.apptive_3team.dto.StylingSuggestionDTO;
 import com.example.apptive_3team.dto.StylingSuggestionResponseDTO;
+import com.example.apptive_3team.dto.WeatherSummaryDTO;
 import com.example.apptive_3team.entity.MoodReport;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -9,13 +10,15 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class StylingService {
 
-    public StylingSuggestionResponseDTO StylingSuggestion(List<MoodReport> moodReports, Double temp) {
+    public StylingSuggestionResponseDTO StylingSuggestion(List<WeatherSummaryDTO> weathers, List<MoodReport> moodReports, Double temp) {
 
         // 추천할 코디가 하나도 없는 경우
         if (moodReports == null || moodReports.isEmpty()) {
@@ -24,33 +27,41 @@ public class StylingService {
 
         String baseMessage = getStyleRecommendation(temp);
 
+        // ID → WeatherSummaryDTO 매핑
+        Map<Long, WeatherSummaryDTO> weatherMap = weathers.stream()
+                .collect(Collectors.toMap(WeatherSummaryDTO::id, Function.identity()));
+
         // 유효한 이미지가 있는 무드리포트만 필터링
         List<StylingSuggestionDTO> validSuggestions = moodReports.stream()
                 .filter(report -> report.getImg_top() != null || report.getImg_bottom() != null || report.getImg_etc() != null)
-                .map(report -> new StylingSuggestionDTO(
-                        report.getId(),
-                        report.getWeatherId(),
-                        report.getDate(),
-                        report.getImg_top(),
-                        report.getImg_bottom(),
-                        report.getImg_etc(),
-                        report.getScore_feel()
-                ))
+                .map(report -> {
+                    WeatherSummaryDTO weather = weatherMap.get(report.getWeatherId());
+
+                    Double tempFeelsLike = weather != null ? weather.tempFeelsLike() : null;
+                    Double tempAvg = weather != null ? weather.tempAvg() : null;
+
+                    return new StylingSuggestionDTO(
+                            report.getId(),
+                            report.getWeatherId(),
+                            report.getDate(),
+                            tempAvg,
+                            tempFeelsLike,
+                            report.getImg_top(),
+                            report.getImg_bottom(),
+                            report.getImg_etc(),
+                            report.getScore_feel()
+                    );
+                })
                 .sorted(Comparator
                         .comparing(StylingSuggestionDTO::score_feel, Comparator.nullsLast(Comparator.reverseOrder()))
                         .thenComparing(StylingSuggestionDTO::date, Comparator.reverseOrder())
                 )
-                .collect(Collectors.toList());
+                .toList();
 
         int count = validSuggestions.size();
         List<StylingSuggestionDTO> topSuggestions = validSuggestions.stream().limit(5).toList();
 
-        String message;
-        if  (count < 5) {
-            message = baseMessage + MESSAGE_INSUFFICIENT_DATA;
-        } else {
-            message = baseMessage;
-        }
+        String message = (count < 5) ? baseMessage + MESSAGE_INSUFFICIENT_DATA : baseMessage;
 
         return new StylingSuggestionResponseDTO(message, count, topSuggestions);
     }

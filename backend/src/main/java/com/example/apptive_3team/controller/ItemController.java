@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,24 +40,18 @@ public class ItemController {
     }
 
     /**
-     * user_id를 기반으로 등록된 모든 items 출력하는 함수
+     * 날짜를 기반으로 챙길 물품 1개를 조회하는 기능.
      *
-     * @param token
-     * 헤더의 토큰 추출하여 user_id 검증
-     *
-     * @return
-     *
-     * GET /items/requestAll
-     * Authorization: Bearer eyJ0eXAiOiJKV1QiLCJh...
+     * @return 챙길 물품 1개에 대한 정보
      */
-    @GetMapping("/requestAll")
-    public ResponseEntity<?> getItems(@RequestHeader("Authorization") String token) {
-        log.info("📥 [GET] item/requestAll API 호출됨");
+    @GetMapping("/request/{date}")
+    public ResponseEntity<?> getItemsByDate(@RequestHeader("Authorization") String token,
+                                            @PathVariable LocalDate date) {
+        log.info("📥 [GET] item/request/{date} API 호출됨");
 
         Long user_id = kakaoService.getUserIdFromJwtToken(token);
 
-        Optional<List<ItemRequestDTO>> data = itemService.getItemsByUserId(user_id);
-
+        Optional<ItemRequestDTO> data = itemService.getItemByDateAndUserId(date, user_id);
         return ResponseEntity.ok(ApiResponse.success("챙길 물품 조회를 완료했습니다.", data));
     }
 

@@ -33,5 +33,5 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
      * @param deadline 챙길 물품이 필요한 날짜
      * @return 챙길 물품 리스트를 Optional로 감싼 형태로 반환.
      */
-    Optional<List<Item>> findByUserIdAndDeadline(Long userId, LocalDate deadline);
+    Optional<Item> findByUserIdAndDeadline(Long userId, LocalDate deadline);
 }

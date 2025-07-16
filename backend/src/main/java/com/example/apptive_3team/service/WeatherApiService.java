@@ -2,6 +2,7 @@ package com.example.apptive_3team.service;
 
 import com.example.apptive_3team.config.WeatherApiConfig;
 import com.example.apptive_3team.dto.WeatherDataDTO;
+import com.example.apptive_3team.dto.WeatherSummaryDTO;
 import com.example.apptive_3team.entity.WeatherData;
 import com.example.apptive_3team.exception.WeatherData.GetWeatherApiException;
 import com.example.apptive_3team.exception.WeatherData.NotSupportedDateException;
@@ -337,7 +338,7 @@ public class WeatherApiService {
      * @param rainAmount 강수량
      * @return 필터링된 날씨 ID 리스트
      */
-    public List<Long> getSimilarWeatherIdsFromIds(List<Long> ids, Double temp, Double rainAmount) {
+    public List<WeatherSummaryDTO> getSimilarWeathersFromIds(List<Long> ids, Double temp, Double rainAmount) {
 
         double range = 1.5;
         double minTemp = temp - range;
@@ -353,8 +354,15 @@ public class WeatherApiService {
             rainRange = "HIGH";
         }
 
-        // Repository 호출
-        return weatherRepository.findSimilarWeatherIdsFromIds(ids, minTemp, maxTemp, rainRange);
+        List<WeatherData> weathers = weatherRepository.findSimilarWeathersFromIds(ids, minTemp, maxTemp, rainRange);
+
+        return weathers.stream()
+                .map(w -> new WeatherSummaryDTO(
+                        w.getId(),
+                        w.getTemp_feels_like(),
+                        w.getTemp_avg()
+                ))
+                .toList();
     }
 
     /**

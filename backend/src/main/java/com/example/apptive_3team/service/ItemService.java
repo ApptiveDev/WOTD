@@ -3,10 +3,8 @@ package com.example.apptive_3team.service;
 import com.example.apptive_3team.dto.ItemRequestDTO;
 import com.example.apptive_3team.entity.Item;
 import com.example.apptive_3team.exception.Item.ItemNotFoundException;
-import com.example.apptive_3team.exception.Item.UserAlreadyHas20ItemsException;
 import com.example.apptive_3team.repository.ItemRepository;
 import jakarta.transaction.Transactional;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -35,9 +33,18 @@ public class ItemService {
      */
     public void saveItem(Long userId, ItemRequestDTO request) {
 
-        validateUserHasFewerThan20ItemsOnDate(userId, request.deadline());
+        Optional<Item> existingItem = itemRepository.findByUserIdAndDeadline(userId, request.deadline());
 
-        Item item = new Item(userId, request.name(), request.deadline());
+        Item item = new Item();
+
+        if (existingItem.isPresent()) {
+            item.setId(existingItem.get().getId());
+            item.setName(request.name());
+        } else {
+            item.setUserId(userId);
+            item.setName(request.name());
+            item.setDeadline(request.deadline());
+        }
 
         itemRepository.save(item);
     }
@@ -82,23 +89,20 @@ public class ItemService {
     }
 
     /**
-     * userId를 기반으로 챙길 물품 목록을 조회하는 메서드.
+     * 사용자 ID와 날짜를 기반으로 챙길 물품 목록을 조회하는 메서드.
      *
-     * @param userId 조회할 사용자의 ID
+     * @param date 조회할 날짜
      *
      * @return 해당 사용자 ID에 속한 챙길 물품 DTO 리스트를 Optional로 감싼 형태로 반환
      */
-    public Optional<List<ItemRequestDTO>> getItemsByUserId(Long userId) {
-        return itemRepository.findByUserId(userId)
-                .map(items -> items.stream()
-                        .map(item -> new ItemRequestDTO(
-                                item.getId(),
-                                item.getName(),
-                                item.getDeadline()
-                        ))
-                        .toList());
+    public Optional<ItemRequestDTO> getItemByDateAndUserId(LocalDate date, Long userId) {
+        return itemRepository.findByUserIdAndDeadline(userId, date)
+                .map(item -> new ItemRequestDTO(
+                        item.getId(),
+                        item.getName(),
+                        item.getDeadline()
+                ));
     }
-
 
     /**
      * 챙길 물품 ID를 기반으로 챙길 물품 1개를 조회하는 메서드.
@@ -114,23 +118,6 @@ public class ItemService {
                         item.getName(),
                         item.getDeadline()
                 )).orElseThrow(ItemNotFoundException::new);
-    }
-
-    /**
-     * userId를 기반으로 챙길 물품 목록을 조회하여
-     * 사용자가 등록한 챙길 물품 개수가 20개 미만인지
-     * 확인하는 예외처리 메서드.
-     *
-     * @param userId 조회할 사용자의 ID
-     * @param deadline 조회할 날짜
-     */
-    public void validateUserHasFewerThan20ItemsOnDate(Long userId, LocalDate deadline) {
-        Optional<List<Item>> itemsOnDate = itemRepository.findByUserIdAndDeadline(userId, deadline);
-        boolean hasFewerThan20 = itemsOnDate.map(items -> items.size() < 20).orElse(true);
-
-        if (!hasFewerThan20) {
-            throw new UserAlreadyHas20ItemsException();
-        }
     }
 
     /**

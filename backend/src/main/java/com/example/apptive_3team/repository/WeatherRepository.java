@@ -48,7 +48,7 @@ public interface WeatherRepository extends JpaRepository<WeatherData, Long> {
      * );
      */
     @Query("""
-SELECT w.id FROM WeatherData w
+SELECT w FROM WeatherData w
 WHERE 
   w.id IN :ids
   AND w.temp_feels_like BETWEEN :min AND :max
@@ -58,7 +58,7 @@ WHERE
     OR (:range = 'HIGH' AND w.rain_amount > 3)
   )
 """)
-    List<Long> findSimilarWeatherIdsFromIds(
+    List<WeatherData> findSimilarWeathersFromIds(
             @Param("ids") List<Long> ids,
             @Param("min") double min,
             @Param("max") double max,
