@@ -75,6 +75,7 @@ import com.apptive.wotd.view.calender.WeatherCard
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.YearMonth
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -198,6 +199,19 @@ fun HomePage() {
     if (isSheetVisible) {
         val itemList = remember { mutableStateListOf<String>() }
         var deleteMenuIndex by remember { mutableStateOf<Int?>(null) }
+
+        val formattedDate = selectedDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+
+        LaunchedEffect(formattedDate) {
+            itemList.clear()
+
+            val data = viewModel.fetchItemListAndReturn(token, formattedDate)
+            data?.name
+                ?.split(",")
+                ?.map { it.trim() }
+                ?.filter { it.isNotBlank() }
+                ?.let { itemList.addAll(it) }
+        }
 
         LaunchedEffect(Unit) {
             bottomSheetState.show()

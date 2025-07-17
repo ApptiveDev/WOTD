@@ -39,3 +39,19 @@ data class StylingItem(
     val img_etc: String,
     val score_feel: Double
 )
+
+/**
+ * 챙길 물품 조회
+ */
+
+data class ItemData(
+    val id: Long,
+    val name: String,
+    val deadline: String
+)
+
+data class ItemResponse(
+    val isSuccess: Boolean,
+    val message: String,
+    val data: ItemData?
+)
