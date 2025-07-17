@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -26,12 +25,8 @@ public class ItemController {
     private final ItemService itemService;
     private final KakaoService kakaoService;
 
-    /**
-     * 챙길 물품 ID를 기반으로 챙길 물품 1개를 조회하는 기능.
-     *
-     * @return 챙길 물품 1개에 대한 정보
-     */
-    @GetMapping("/request/{itemId}")
+    // itemId로 조회
+    @GetMapping("/requestById/{itemId}")
     public ResponseEntity<?> getItem(@PathVariable Long itemId) {
         log.info("📥 [GET] item/request/{itemId} API 호출됨");
 
@@ -39,12 +34,8 @@ public class ItemController {
         return ResponseEntity.ok(ApiResponse.success("챙길 물품 조회를 완료했습니다.", data));
     }
 
-    /**
-     * 날짜를 기반으로 챙길 물품 1개를 조회하는 기능.
-     *
-     * @return 챙길 물품 1개에 대한 정보
-     */
-    @GetMapping("/request/{date}")
+    // date로 조회
+    @GetMapping("/requestByDate/{date}")
     public ResponseEntity<?> getItemsByDate(@RequestHeader("Authorization") String token,
                                             @PathVariable LocalDate date) {
         log.info("📥 [GET] item/request/{date} API 호출됨");
