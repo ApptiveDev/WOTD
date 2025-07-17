@@ -91,7 +91,7 @@ import com.apptive.wotd.composable.HandleBackPressToExitApp
 import com.apptive.wotd.view.mypage.MyPage
 
 class MainViewModel : ViewModel() {
-    private val _selectedTab = MutableStateFlow(BottomTab.Calendar)
+    private val _selectedTab = MutableStateFlow(BottomTab.Home)
     val selectedTab: StateFlow<BottomTab> = _selectedTab.asStateFlow()
     fun setTab(tab: BottomTab) { _selectedTab.value = tab }
 }

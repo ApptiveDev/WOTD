@@ -56,4 +56,49 @@ class StylingViewModel @Inject constructor(
             isSubmitting = false
         }
     }
+
+    private val _itemData = MutableStateFlow<ItemData?>(null)
+    val itemData: StateFlow<ItemData?> = _itemData
+
+    private val _itemError = MutableStateFlow<String?>(null)
+    val itemError: StateFlow<String?> = _itemError
+
+    fun fetchItemList(token: String, date: String) {
+        viewModelScope.launch {
+            val result = repository.getItemList(token, date)
+            result
+                .onSuccess { data ->
+                    if (data != null) {
+                        _itemData.value = data.copy()
+                    } else {
+                        _itemData.value = null
+                    }
+                }
+                .onFailure { error ->
+                    _itemError.value = error.message
+                }
+        }
+    }
+
+    suspend fun fetchItemListAndReturn(token: String, date: String): ItemData? {
+        val result = repository.getItemList(token, date)
+        return result.getOrNull()?.also {
+            _itemData.value = it
+        }
+    }
+
+    private val _itemById = MutableStateFlow<ItemData?>(null)
+    val itemById: StateFlow<ItemData?> = _itemById
+
+    fun requestItemById(token: String, itemId: Long) {
+        viewModelScope.launch {
+            val result = repository.getItemById(token, itemId)
+            result
+                .onSuccess { _itemById.value = it }
+                .onFailure { e ->
+                    _itemById.value = null
+                    _stylingError.value = e.message ?: "물품 조회에 실패했어요."
+                }
+        }
+    }
 }
