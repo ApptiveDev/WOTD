@@ -371,17 +371,23 @@ fun HomePage() {
                         )
                         .padding(start = 12.dp, top = 8.dp, end = 12.dp, bottom = 8.dp)
                         .noRippleClickable {
+                            val formattedDate = selectedDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
                             val itemStringToSend = itemList.joinToString(",")
-                            viewModel.submitItemList(
-                                token,
-                                itemStringToSend,
-                                selectedDate
-                            )
                             scope.launch {
-                                bottomSheetState.hide()
-                            }.invokeOnCompletion {
-                                isSheetVisible = false
+                                val success = viewModel.submitItemListAndReturn(token, itemStringToSend, selectedDate)
+                                if (success) {
+                                    val updated = viewModel.fetchItemListAndReturn(token, formattedDate)
+                                    itemList.clear()
+                                    updated?.name
+                                        ?.split(",")
+                                        ?.map { it.trim() }
+                                        ?.filter { it.isNotBlank() }
+                                        ?.let { itemList.addAll(it) }
+                                } else {
+                                    Log.d("ItemSubmit", "등록에 실패했어요")
+                                }
                             }
+
                         },
                     contentAlignment = Alignment.Center
                 ) {
