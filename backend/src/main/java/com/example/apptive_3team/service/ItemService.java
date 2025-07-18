@@ -6,6 +6,7 @@ import com.example.apptive_3team.exception.Item.ItemNotFoundException;
 import com.example.apptive_3team.repository.ItemRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +19,7 @@ import java.util.Optional;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ItemService {
 
     private final ItemRepository itemRepository;
@@ -33,6 +35,14 @@ public class ItemService {
      */
     public void saveItem(Long userId, ItemRequestDTO request) {
 
+        log.info("📥 [SERVICE] saveItem() 호출됨 - userId={}, deadline={}, name='{}'", userId, request.deadline(), request.name());
+
+        if (request.name() == null || request.name().trim().isEmpty()) {
+            throw new IllegalArgumentException("물품 이름은 비어 있을 수 없습니다.");
+        }
+        if (request.deadline() == null) {
+            throw new IllegalArgumentException("날짜는 반드시 입력해야 합니다.");
+        }
         Optional<Item> existingItem = itemRepository.findByUserIdAndDeadline(userId, request.deadline());
 
         Item item = new Item();
@@ -45,7 +55,8 @@ public class ItemService {
             item.setName(request.name());
             item.setDeadline(request.deadline());
         }
-
+        log.info("✅ 저장 완료 - itemId={}, userId={}, name='{}', deadline={}",
+                item.getId(), item.getUserId(), item.getName(), item.getDeadline());
         itemRepository.save(item);
     }
 
