@@ -24,11 +24,13 @@ public class Item {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "user_id") // DB 컬럼명은 user_id로 매핑
+    @Column(name = "user_id", nullable = false) // DB 컬럼명은 user_id로 매핑
     private Long userId;
 
     @Column(nullable = false)
     private String name;
+
+    @Column(nullable = false)
     private LocalDate deadline;
 
     public Item() {}
