@@ -31,6 +31,8 @@ public class ItemController {
         log.info("📥 [GET] item/request/{itemId} API 호출됨");
 
         ItemRequestDTO data = itemService.getItemById(itemId);
+        log.debug("찾은 item: item_id={}, name={}, deadline={}", data.id(), data.name(), data.deadline());
+
         return ResponseEntity.ok(ApiResponse.success("챙길 물품 조회를 완료했습니다.", data));
     }
 
@@ -43,6 +45,13 @@ public class ItemController {
         Long user_id = kakaoService.getUserIdFromJwtToken(token);
 
         Optional<ItemRequestDTO> data = itemService.getItemByDateAndUserId(date, user_id);
+        if (data.isPresent()) {
+            ItemRequestDTO item = data.get();
+            log.debug("찾은 item: item_id={}, name={}, deadline={}", item.id(), item.name(), item.deadline());
+        } else {
+            log.warn("해당 날짜에 일치하는 item이 없습니다. date={}, userId={}", date, user_id);
+        }
+
         return ResponseEntity.ok(ApiResponse.success("챙길 물품 조회를 완료했습니다.", data));
     }
 
