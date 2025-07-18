@@ -121,30 +121,30 @@ public class ItemService {
                 });
     }
 
-        // 📌 ID로 조회
-        public ItemRequestDTO getItemById(Long id) {
-            log.info("📥 [SERVICE] getItemById() 호출됨 - itemId={}", id);
+    // 📌 ID로 조회
+    public ItemRequestDTO getItemById(Long id) {
+        log.info("📥 [SERVICE] getItemById() 호출됨 - itemId={}", id);
 
-            return itemRepository.findById(id)
-                    .filter(item -> {
-                        boolean valid = item.getName() != null && !item.getName().isBlank();
-                        if (!valid) {
-                            log.warn("⚠️ 조회된 item의 name이 null 또는 공백입니다. itemId={}", item.getId());
-                        }
-                        return valid;
-                    })
-                    .map(item -> {
-                        log.info("✅ 조회 성공 - itemId={}, name='{}', deadline={}", item.getId(), item.getName(), item.getDeadline());
-                        return new ItemRequestDTO(
-                                item.getId(),
-                                item.getName(),
-                                item.getDeadline()
-                        );
-                    })
-                    .orElseThrow(() -> {
-                        log.warn("❌ itemId={}에 해당하는 아이템을 찾을 수 없습니다.", id);
-                        return new ItemNotFoundException();
-                    });
+        return itemRepository.findById(id)
+                .filter(item -> {
+                    boolean valid = item.getName() != null && !item.getName().isBlank();
+                    if (!valid) {
+                        log.warn("⚠️ 조회된 item의 name이 null 또는 공백입니다. itemId={}", item.getId());
+                    }
+                    return valid;
+                })
+                .map(item -> {
+                    log.info("✅ 조회 성공 - itemId={}, name='{}', deadline={}", item.getId(), item.getName(), item.getDeadline());
+                    return new ItemRequestDTO(
+                            item.getId(),
+                            item.getName(),
+                            item.getDeadline()
+                    );
+                })
+                .orElseThrow(() -> {
+                    log.warn("❌ itemId={}에 해당하는 아이템을 찾을 수 없습니다.", id);
+                    return new ItemNotFoundException();
+                });
         }
 
 
