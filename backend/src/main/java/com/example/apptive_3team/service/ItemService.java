@@ -99,22 +99,27 @@ public class ItemService {
         itemRepository.delete(item);
     }
 
-    /**
-     * 사용자 ID와 날짜를 기반으로 챙길 물품 목록을 조회하는 메서드.
-     *
-     * @param date 조회할 날짜
-     *
-     * @return 해당 사용자 ID에 속한 챙길 물품 DTO 리스트를 Optional로 감싼 형태로 반환
-     */
-        public Optional<ItemRequestDTO> getItemByDateAndUserId(LocalDate date, Long userId) {
-            return itemRepository.findByUserIdAndDeadline(userId, date)
-                    .filter(item -> item.getName() != null && !item.getName().isBlank())
-                    .map(item -> new ItemRequestDTO(
+    // 📌 날짜 + 사용자로 조회
+    public Optional<ItemRequestDTO> getItemByDateAndUserId(LocalDate date, Long userId) {
+        log.info("📥 [SERVICE] getItemByDateAndUserId() 호출됨 - userId={}, date={}", userId, date);
+
+        return itemRepository.findByUserIdAndDeadline(userId, date)
+                .filter(item -> {
+                    boolean valid = item.getName() != null && !item.getName().isBlank();
+                    if (!valid) {
+                        log.warn("⚠️ 조회된 item의 name이 null 또는 공백입니다. itemId={}", item.getId());
+                    }
+                    return valid;
+                })
+                .map(item -> {
+                    log.info("✅ 조회 성공 - itemId={}, name='{}', deadline={}", item.getId(), item.getName(), item.getDeadline());
+                    return new ItemRequestDTO(
                             item.getId(),
                             item.getName(),
                             item.getDeadline()
-                    ));
-        }
+                    );
+                });
+    }
 
         // 📌 ID로 조회
         public ItemRequestDTO getItemById(Long id) {
