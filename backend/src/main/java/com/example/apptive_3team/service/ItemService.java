@@ -95,30 +95,33 @@ public class ItemService {
      *
      * @return 해당 사용자 ID에 속한 챙길 물품 DTO 리스트를 Optional로 감싼 형태로 반환
      */
-    public Optional<ItemRequestDTO> getItemByDateAndUserId(LocalDate date, Long userId) {
-        return itemRepository.findByUserIdAndDeadline(userId, date)
-                .map(item -> new ItemRequestDTO(
-                        item.getId(),
-                        item.getName(),
-                        item.getDeadline()
-                ));
-    }
+        public Optional<ItemRequestDTO> getItemByDateAndUserId(LocalDate date, Long userId) {
+            return itemRepository.findByUserIdAndDeadline(userId, date)
+                    .filter(item -> item.getName() != null && !item.getName().isBlank())
+                    .map(item -> new ItemRequestDTO(
+                            item.getId(),
+                            item.getName(),
+                            item.getDeadline()
+                    ));
+        }
 
-    /**
-     * 챙길 물품 ID를 기반으로 챙길 물품 1개를 조회하는 메서드.
-     *
-     * @param id 챙길 물품 ID
-     *
-     * @return 챙길 물품 DTO를 Optional로 감싼 형태로 반환
-     */
-    public ItemRequestDTO getItemById(Long id) {
-        return itemRepository.findById(id)
-                .map(item -> new ItemRequestDTO(
-                        item.getId(),
-                        item.getName(),
-                        item.getDeadline()
-                )).orElseThrow(ItemNotFoundException::new);
-    }
+        /**
+         * 챙길 물품 ID를 기반으로 챙길 물품 1개를 조회하는 메서드.
+         *
+         * @param id 챙길 물품 ID
+         *
+         * @return 챙길 물품 DTO를 Optional로 감싼 형태로 반환
+         */
+        public ItemRequestDTO getItemById(Long id) {
+
+            return itemRepository.findById(id)
+                    .filter(item -> item.getName() != null && !item.getName().isBlank())
+                    .map(item -> new ItemRequestDTO(
+                            item.getId(),
+                            item.getName(),
+                            item.getDeadline()
+                    )).orElseThrow(ItemNotFoundException::new);
+        }
 
     /**
      * item ID를 기반으로 챙길 물품 목록을 조회하여
