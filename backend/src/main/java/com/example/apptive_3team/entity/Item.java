@@ -27,6 +27,7 @@ public class Item {
     @Column(name = "user_id") // DB 컬럼명은 user_id로 매핑
     private Long userId;
 
+    @Column(nullable = false)
     private String name;
     private LocalDate deadline;
 
