@@ -1,5 +1,6 @@
 package com.apptive.wotd.view.home
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -55,7 +56,6 @@ fun TodaysOutfitRecommend(
     stylingResult: StylingSuggestionData? = null
 ) {
     var selected by remember { mutableStateOf(0) }
-    var sliderPosition by remember { mutableStateOf(0.8f) }
 
     Column(
         horizontalAlignment = Alignment.Start,
@@ -113,9 +113,15 @@ fun TodaysOutfitRecommend(
                 keyColor = Color(0xFF25D061),
                 measure = "°C"
             )
+            val sliderPosition = stylingResult?.suggestions?.firstOrNull()
+                ?.score_feel
+                ?.toFloat()
+                ?.div(5.0f)
+                ?: 0.0f
+            Log.d("sliderPosion", sliderPosition.toString())
             Column(modifier = Modifier.fillMaxWidth()){
-                OutfitInfoRow(label = "만족도", value1 = (sliderPosition*100).toInt().toString(), measure = "%")
-                FrogSatisfactionSlider(sliderPosition, onValueChange = {sliderPosition = it})
+                OutfitInfoRow(label = "만족도", value1 = (stylingResult?.suggestions?.firstOrNull()?.score_feel?.toFloat()?.times(20) ?: 0.0f).toInt().toString(), measure = "%")
+                FrogSatisfactionSlider(sliderPosition, onValueChange = {})
             }
 
         }
@@ -251,13 +257,9 @@ fun FrogSatisfactionSlider(
     sliderPosition: Float = 0.8f,
     onValueChange: (Float) -> Unit
 ) {
-    var sliderPosition by remember { mutableStateOf(sliderPosition) }
     Slider(
         value = sliderPosition,
-        onValueChange = {
-            sliderPosition = it
-            onValueChange(it)
-        },
+        onValueChange = {},
         valueRange = 0f..1f,
         modifier = Modifier.fillMaxWidth(),
         colors = SliderDefaults.colors(

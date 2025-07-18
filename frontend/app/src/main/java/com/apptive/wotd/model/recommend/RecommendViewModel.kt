@@ -63,22 +63,6 @@ class StylingViewModel @Inject constructor(
     private val _itemError = MutableStateFlow<String?>(null)
     val itemError: StateFlow<String?> = _itemError
 
-    fun fetchItemList(token: String, date: String) {
-        viewModelScope.launch {
-            val result = repository.getItemList(token, date)
-            result
-                .onSuccess { data ->
-                    if (data != null) {
-                        _itemData.value = data.copy()
-                    } else {
-                        _itemData.value = null
-                    }
-                }
-                .onFailure { error ->
-                    _itemError.value = error.message
-                }
-        }
-    }
 
     suspend fun fetchItemListAndReturn(token: String, date: String): ItemData? {
         val result = repository.getItemList(token, date)
@@ -101,4 +85,16 @@ class StylingViewModel @Inject constructor(
                 }
         }
     }
+
+    suspend fun submitItemListAndReturn(token: String, name: String, deadline: LocalDate): Boolean {
+        val result = repository.submitItemList(token, name, deadline.toString())
+        return if (result.isSuccess) {
+            isSubmitSuccess = true
+            true
+        } else {
+            isSubmitSuccess = false
+            false
+        }
+    }
+
 }
